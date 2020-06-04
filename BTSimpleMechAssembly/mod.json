@@ -1,0 +1,23 @@
+﻿{
+  "Name": "BTSimpleMechAssembly",
+  "Enabled": true,
+
+  "Description": "",
+  "Author": "mcb",
+  "Website": "https://github.com/mcb5637/BTSimpleMechAssembly",
+
+  "DLL": "BTSimpleMechAssembly.dll",
+
+  "ConflictsWith": [ "AdjustedMechAssembly", "AdjustedMechAssemblyCC", "AdjustedMechSalvage", "CustomSalvage", "SalvageOperations" ],
+
+  "SettingsComment": "CrossAssemblyUpgradeRequired delete to not need an argo upgrade, OmniMechTag chassistag to enable omni functionality (unpack from storage allows variant selection)",
+  "Settings": {
+    "CrossAssemblyUpgradeRequired": "argoUpgrade_mechBay_machineShop",
+    "CrossAssemblySpeedMatch": true,
+    "CrossAssemblyTonnsMatch": true,
+    "CrossAssemblyTagsMatch": [ "chassis_endo", "chassis_ferro", "chassis_DHS" ],
+    "CrossAssemblyExcludedMechs": [],
+    "OmniMechTag": "chassis_omni",
+    "AssembledMechsNeedReadying": true
+  }
+}
