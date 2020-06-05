@@ -18,6 +18,11 @@
     "CrossAssemblyTagsMatch": [ "chassis_endo", "chassis_ferro", "chassis_DHS" ],
     "CrossAssemblyExcludedMechs": [],
     "OmniMechTag": "chassis_omni",
-    "AssembledMechsNeedReadying": true
+    "AssembledMechsNeedReadying": true,
+    "StructurePointBasedSalvageActive": true,
+    "StructurePointBasedSalvageLowPriorityFactor": 1,
+    "StructurePointBasedSalvageHighPriorityFactor": 2,
+    "StructurePointBasedSalvageMaxPartsFromMech": 3,
+    "StructurePointBasedSalvageMinPartsFromMech": 1
   }
 }

@@ -15,5 +15,10 @@ namespace BTSimpleMechAssembly
         public string[] CrossAssemblyExcludedMechs = new string[] {};
         public string OmniMechTag = null;
         public bool AssembledMechsNeedReadying = false;
+        public bool StructurePointBasedSalvageActive = false;
+        public float StructurePointBasedSalvageLowPriorityFactor = 1f;
+        public float StructurePointBasedSalvageHighPriorityFactor = 2f;
+        public int StructurePointBasedSalvageMaxPartsFromMech = 3;
+        public int StructurePointBasedSalvageMinPartsFromMech = 1;
     }
 }

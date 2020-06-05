@@ -50,12 +50,20 @@ namespace BTSimpleMechAssembly
 
         public static void Postfix(SimGameState __instance)
         {
+            List<string> VariantsDone = new List<string>();
             foreach (KeyValuePair<string, int> kv in IsResolving)
             {
                 MechDef d = __instance.DataManager.MechDefs.Get(kv.Key);
+                if (VariantsDone.Contains(d.Description.Id))
+                    continue;
                 int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(__instance, d);
                 if (p >= __instance.Constants.Story.DefaultMechPartMax)
+                {
                     SimpleMechAssembly_Main.QueryMechAssemblyPopup(__instance, d, null);
+                    foreach (MechDef m in SimpleMechAssembly_Main.GetAllAssemblyVariants(__instance, d))
+                        if (!VariantsDone.Contains(m.Description.Id))
+                            VariantsDone.Add(m.Description.Id);
+                }
             }
             IsResolving = null;
         }

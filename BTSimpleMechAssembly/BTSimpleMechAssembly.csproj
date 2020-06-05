@@ -82,6 +82,7 @@
     <Compile Include="SimpleMechAssembly_Main.cs" />
     <Compile Include="SimpleMechAssembly_Patches.cs" />
     <Compile Include="SimpleMechAssembly_Settings.cs" />
+    <Compile Include="SimpleMechAssembly_StructurePointBasedSalvage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
