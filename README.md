@@ -13,5 +13,5 @@ More intelligent Assembly algorythm. First uses the parts of the mech you want t
 
 (optional) Modified salvage generation to be based on remaining structure points. It sums up all structure points (with head and center torso using a factor of StructurePointBasedSalvageHighPriorityFactor,
 and the rest a factor of StructurePointBasedSalvageLowPriorityFactor) and calculates a percentage of it. 100% means you get maximum parts (which is the lower one of StructurePointBasedSalvageMaxPartsFromMech and your difficulty setting),
-0% means you get nothing, unless StructurePointBasedSalvageMinPartsFromMech is set >0, in ehich case you get always at least this much parts from a mech.
-Parts are generated as usual, but you cannot get randomly upgraded parts from destroying a mech with basic parts.
+0% means you get nothing, unless StructurePointBasedSalvageMinPartsFromMech is set >0, in which case you get always at least this much parts from a mech.
+Mechcomponents (upgrades&weapons) are generated as usual, but you cannot get randomly upgraded Mechcomponents from destroying a mech with basic Mechcomponents.
