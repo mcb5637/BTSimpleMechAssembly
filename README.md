@@ -10,6 +10,7 @@ Optional omnimech support. On readying an omnimech you can choose which variant 
 Assembled mechs can be required to be readied before use, or be instantly ready.
 If you use equiped mechs game rule, you gain the mech equipment in any case (goes into storage if you assemble and put the mech into storage).
 More intelligent Assembly algorythm. First uses the parts of the mech you want to assemble, and fills missing parts from Crossvariants (if enabled&unlocked) trying to leave at least one part of every variant remaining.
+Modified part count in salvage/shop screen: `currentParts (crossvariantParts) / maxParts (CompleteMechs)`, to help pick the correct parts you need.
 
 (optional) Modified salvage generation to be based on remaining structure points. It sums up all structure points (with head and center torso using a factor of StructurePointBasedSalvageHighPriorityFactor,
 and the rest a factor of StructurePointBasedSalvageLowPriorityFactor) and calculates a percentage of it. 100% means you get maximum parts (which is the lower one of StructurePointBasedSalvageMaxPartsFromMech and your difficulty setting),
