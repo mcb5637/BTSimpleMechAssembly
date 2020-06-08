@@ -9,6 +9,7 @@ namespace BTSimpleMechAssembly
     class SimpleMechAssembly_Settings
     {
         public string CrossAssemblyUpgradeRequired = null;
+        public bool CrossAssemblyAlwaysAllowIfSimulation = false;
         public bool CrossAssemblySpeedMatch = true;
         public bool CrossAssemblyTonnsMatch = true;
         public string[] CrossAssemblyTagsMatch = new string[] {};

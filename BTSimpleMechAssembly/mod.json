@@ -13,6 +13,7 @@
   "SettingsComment": "CrossAssemblyUpgradeRequired delete to not need an argo upgrade, OmniMechTag chassistag to enable omni functionality (unpack from storage allows variant selection)",
   "Settings": {
     "CrossAssemblyUpgradeRequired": "argoUpgrade_mechBay_machineShop",
+    "CrossAssemblyAlwaysAllowIfSimulation": true,
     "CrossAssemblySpeedMatch": true,
     "CrossAssemblyTonnsMatch": true,
     "CrossAssemblyTagsMatch": [ "chassis_endo", "chassis_ferro", "chassis_DHS" ],
