@@ -125,7 +125,7 @@ namespace BTSimpleMechAssembly
             int needed = ___simState.Constants.Story.DefaultMechPartMax;
             int varpieces = SimpleMechAssembly_Main.GetNumPartsForAssembly(___simState, __instance.mechDef);
             int owned = SimpleMechAssembly_Main.GetNumberOfMechsOwnedOfType(___simState, __instance.mechDef);
-            theWidget.mechPartsNumbersText.SetText(string.Format("{0} ({1} {2}) / {3}", pieces, varpieces, owned, needed));
+            theWidget.mechPartsNumbersText.SetText(string.Format("{0}({1})/{3}({2})", pieces, varpieces, owned, needed));
         }
     }
 

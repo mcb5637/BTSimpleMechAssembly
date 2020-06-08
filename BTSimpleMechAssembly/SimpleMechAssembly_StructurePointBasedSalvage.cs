@@ -154,6 +154,13 @@ namespace BTSimpleMechAssembly
 
         private static void AddUpgradeToSalvage(Contract __instance, MechComponentDef d, SimGameState s, List<SalvageDef> sal)
         {
+            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageVanillaComponents)
+            {
+                object[] args = new object[] { sal, d, ComponentDamageLevel.Functional, false, s.Constants, s.NetworkRandom, true };
+                Traverse.Create(__instance).Method("AddMechComponentToSalvage", args).GetValue(args);
+                return;
+            }
+
             if (d.ComponentTags.Contains("BLACKLISTED"))
             {
                 SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted");

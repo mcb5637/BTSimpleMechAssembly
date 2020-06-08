@@ -23,6 +23,7 @@
     "StructurePointBasedSalvageLowPriorityFactor": 1,
     "StructurePointBasedSalvageHighPriorityFactor": 2,
     "StructurePointBasedSalvageMaxPartsFromMech": 3,
-    "StructurePointBasedSalvageMinPartsFromMech": 1
+    "StructurePointBasedSalvageMinPartsFromMech": 1,
+    "StructurePointBasedSalvageVanillaComponents": false
   }
 }
