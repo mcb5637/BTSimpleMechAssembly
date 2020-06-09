@@ -38,6 +38,16 @@ namespace BTSimpleMechAssembly
                         continue; // base variant
                     if (string.IsNullOrEmpty(kv.Value.Chassis.Description.UIName) || !kv.Value.Chassis.Description.UIName.Equals(m.Chassis.Description.UIName))
                         continue; // wrong or invalid variant
+                    if (m.Chassis.MovementCapDef==null)
+                    {
+                        Log.LogError(string.Format("{0} {1} (m) has no MovementCapDef, aborting speed comparison", m.Chassis.Description.UIName, m.Chassis.VariantName));
+                        continue;
+                    }
+                    if (kv.Value.Chassis.MovementCapDef == null)
+                    {
+                        Log.LogError(string.Format("{0} {1} (kv.Value) has no MovementCapDef, aborting speed comparison", kv.Value.Chassis.Description.UIName, kv.Value.Chassis.VariantName));
+                        continue;
+                    }
                     if (Settings.CrossAssemblySpeedMatch && (m.Chassis.MovementCapDef.MaxWalkDistance != kv.Value.Chassis.MovementCapDef.MaxWalkDistance))
                         continue; // speed missmatch
                     if (Settings.CrossAssemblyTonnsMatch && (m.Chassis.Tonnage != kv.Value.Chassis.Tonnage))
