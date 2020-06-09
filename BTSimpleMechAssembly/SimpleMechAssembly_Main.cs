@@ -185,7 +185,7 @@ namespace BTSimpleMechAssembly
                 if (!CheckOmniKnown(s, d, m))
                     continue;
                 int com = GetNumberOfMechsOwnedOfType(s, m);
-                desc += string.Format("{0} {1} ({2} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, com);
+                desc += string.Format("[[DM.MechDefs[{3}],{0} {1}]] ({2} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, com, m.Description.Id);
             }
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Ready Mech?", desc);
             pop.AddButton("nothing", null, true, null);
@@ -237,7 +237,7 @@ namespace BTSimpleMechAssembly
                 if (count <= 0)
                     continue;
                 int com = GetNumberOfMechsOwnedOfType(s, m);
-                desc += string.Format("{0} {1} ({2} Parts/{3} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, count, com);
+                desc += string.Format("[[DM.MechDefs[{4}],{0} {1}]] ({2} Parts/{3} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, count, com, m.Description.Id);
             }
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble Mech?", desc);
             pop.AddButton("nothing", null, true, null);
@@ -265,13 +265,17 @@ namespace BTSimpleMechAssembly
                 Log.Log("no space, direct storage");
                 if (refresh != null)
                     refresh.RefreshData(false);
-                GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled", string.Format("Yang: {0}\n\nWe have no space for a new mech, so it goes into storage.", d.Chassis.YangsThoughts));
+                GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled",
+                    string.Format("Yang: [[DM.MechDefs[{3}],{1} {2}]] finished!\n{0}\n\nWe have no space for a new mech, so it goes into storage.",
+                    d.Chassis.YangsThoughts, d.Chassis.Description.UIName, d.Chassis.VariantName, d.Description.Id));
                 pop.AddButton("ok", null, true, null);
                 pop.Render();
             }
             else
             {
-                GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled", string.Format("Yang: {0}\n\nShould i put it into storage or ready it for combat?.", d.Chassis.YangsThoughts));
+                GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled",
+                    string.Format("Yang: [[DM.MechDefs[{3}],{1} {2}]] finished!\n{0}\n\nShould i put it into storage or ready it for combat?.",
+                    d.Chassis.YangsThoughts, d.Chassis.Description.UIName, d.Chassis.VariantName, d.Description.Id));
                 pop.AddButton("storage", delegate
                 {
                     StoreMech(s, toAdd);
