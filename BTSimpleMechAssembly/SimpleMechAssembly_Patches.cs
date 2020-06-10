@@ -10,6 +10,7 @@ using Harmony;
 using BattleTech.UI.TMProWrapper;
 using BattleTech.Save.SaveGameStructure;
 using System.Reflection.Emit;
+using HBS;
 
 namespace BTSimpleMechAssembly
 {
@@ -59,7 +60,8 @@ namespace BTSimpleMechAssembly
                 int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(__instance, d);
                 if (p >= __instance.Constants.Story.DefaultMechPartMax)
                 {
-                    SimpleMechAssembly_Main.QueryMechAssemblyPopup(__instance, d, null);
+                    //SimpleMechAssembly_Main.QueryMechAssemblyPopup(__instance, d, null);
+                    __instance.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(__instance, d, null), true);
                     foreach (MechDef m in SimpleMechAssembly_Main.GetAllAssemblyVariants(__instance, d))
                         if (!VariantsDone.Contains(m.Description.Id))
                             VariantsDone.Add(m.Description.Id);
@@ -84,10 +86,12 @@ namespace BTSimpleMechAssembly
                 int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(___mechBay.Sim, d);
                 if (p < ___mechBay.Sim.Constants.Story.DefaultMechPartMax)
                 {
-                    GenericPopupBuilder.Create("Mech Assembly", "Yang: I do not have enough parts to assemble a mech out of it.").AddButton("Cancel", null, true, null).Render();
+                    GenericPopupBuilder.Create("Mech Assembly", "Yang: I do not have enough parts to assemble a mech out of it.").AddButton("Cancel", null, true, null)
+                        .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).Render();
                     return false;
                 }
                 SimpleMechAssembly_Main.QueryMechAssemblyPopup(___mechBay.Sim, d, ___mechBay);
+                //___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(___mechBay.Sim, d, ___mechBay), true);
                 return false;
             }
             if (___selectedChassis.MechPartCount < ___selectedChassis.MechPartMax)

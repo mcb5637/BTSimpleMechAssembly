@@ -1,6 +1,7 @@
 ﻿using BattleTech;
 using BattleTech.UI;
 using Harmony;
+using HBS;
 using HBS.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,10 +19,14 @@ namespace BTSimpleMechAssembly
         public static int GetNumPartsForAssembly(SimGameState s, MechDef m)
         {
             List<MechDef> vars = GetAllAssemblyVariants(s, m);
+            Dictionary<string, bool> has = new Dictionary<string, bool>();
             int p = 0;
             foreach (MechDef d in vars)
             {
+                if (has.ContainsKey(d.Description.Id))
+                    continue;
                 p += s.GetItemCount(d.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
+                has.Add(d.Description.Id, true);
             }
             return p;
         }
@@ -40,13 +45,21 @@ namespace BTSimpleMechAssembly
                         continue; // wrong or invalid variant
                     if (m.Chassis.MovementCapDef==null)
                     {
-                        Log.LogError(string.Format("{0} {1} (m) has no MovementCapDef, aborting speed comparison", m.Chassis.Description.UIName, m.Chassis.VariantName));
-                        continue;
+                        m.Chassis.RefreshMovementCaps();
+                        if (m.Chassis.MovementCapDef == null)
+                        {
+                            Log.LogError(string.Format("{0} {1} (m) has no MovementCapDef, aborting speed comparison", m.Chassis.Description.UIName, m.Chassis.VariantName));
+                            continue;
+                        }
                     }
                     if (kv.Value.Chassis.MovementCapDef == null)
                     {
-                        Log.LogError(string.Format("{0} {1} (kv.Value) has no MovementCapDef, aborting speed comparison", kv.Value.Chassis.Description.UIName, kv.Value.Chassis.VariantName));
-                        continue;
+                        kv.Value.Chassis.RefreshMovementCaps();
+                        if (kv.Value.Chassis.MovementCapDef == null)
+                        {
+                            Log.LogError(string.Format("{0} {1} (kv.Value) has no MovementCapDef, aborting speed comparison", kv.Value.Chassis.Description.UIName, kv.Value.Chassis.VariantName));
+                            continue;
+                        }
                     }
                     if (Settings.CrossAssemblySpeedMatch && (m.Chassis.MovementCapDef.MaxWalkDistance != kv.Value.Chassis.MovementCapDef.MaxWalkDistance))
                         continue; // speed missmatch
@@ -206,6 +219,7 @@ namespace BTSimpleMechAssembly
                     }
                 }, true, null);
             }
+            pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
             pop.Render();
         }
 
@@ -225,10 +239,14 @@ namespace BTSimpleMechAssembly
             AudioEventManager.PlayAudioEvent("audioeventdef_simgame_vo_barks", "workqueue_readymech", WwiseManager.GlobalAudioObject, null);
         }
 
-        public static void QueryMechAssemblyPopup(SimGameState s, MechDef d, MechBayPanel refresh = null)
+        public static void QueryMechAssemblyPopup(SimGameState s, MechDef d, MechBayPanel refresh = null, SimpleMechAssembly_InterruptManager_AssembleMechEntry close =null)
         {
             if (GetNumPartsForAssembly(s, d) < s.Constants.Story.DefaultMechPartMax)
+            {
+                if (close != null)
+                    close.NewClose();
                 return;
+            }
             List<MechDef> mechs = GetAllAssemblyVariants(s, d);
             string desc = "Yang: We have Parts for the following mech variants. What should i build?\n\n";
             foreach (MechDef m in mechs)
@@ -240,22 +258,27 @@ namespace BTSimpleMechAssembly
                 desc += string.Format("[[DM.MechDefs[{4}],{0} {1}]] ({2} Parts/{3} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, count, com, m.Description.Id);
             }
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble Mech?", desc);
-            pop.AddButton("nothing", null, true, null);
+            pop.AddButton("-", delegate
+            {
+                if (close != null)
+                    close.NewClose();
+            }, true, null);
             foreach (MechDef m in mechs)
             {
                 MechDef var = m; // new var to keep it for lambda
                 int count = s.GetItemCount(var.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
                 if (count <= 0 && !CheckOmniKnown(s, d, m))
                     continue;
-                pop.AddButton(string.Format("{0} {1}", var.Chassis.Description.UIName, var.Chassis.VariantName), delegate
+                pop.AddButton(string.Format("{0}", var.Chassis.VariantName), delegate
                 {
-                    PerformMechAssemblyStorePopup(s, var, refresh);
+                    PerformMechAssemblyStorePopup(s, var, refresh, close);
                 }, true, null);
             }
+            pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
             pop.Render();
         }
 
-        public static void PerformMechAssemblyStorePopup(SimGameState s, MechDef d, MechBayPanel refresh)
+        public static void PerformMechAssemblyStorePopup(SimGameState s, MechDef d, MechBayPanel refresh, SimpleMechAssembly_InterruptManager_AssembleMechEntry close)
         {
             MechDef toAdd = PerformMechAssembly(s, d);
             int mechbay = s.GetFirstFreeMechBay();
@@ -268,7 +291,12 @@ namespace BTSimpleMechAssembly
                 GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled",
                     string.Format("Yang: [[DM.MechDefs[{3}],{1} {2}]] finished!\n{0}\n\nWe have no space for a new mech, so it goes into storage.",
                     d.Chassis.YangsThoughts, d.Chassis.Description.UIName, d.Chassis.VariantName, d.Description.Id));
-                pop.AddButton("ok", null, true, null);
+                pop.AddButton("ok", delegate
+                {
+                    if (close != null)
+                        close.NewClose();
+                }, true, null);
+                pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
                 pop.Render();
             }
             else
@@ -282,6 +310,8 @@ namespace BTSimpleMechAssembly
                     Log.Log("direct storage");
                     if (refresh != null)
                         refresh.RefreshData(false);
+                    if (close != null)
+                        close.NewClose();
                 }, true, null);
                 pop.AddButton("ready it", delegate
                 {
@@ -292,7 +322,10 @@ namespace BTSimpleMechAssembly
                     Log.Log("added to bay " + mechbay);
                     if (refresh != null)
                         refresh.RefreshData(false);
+                    if (close != null)
+                        close.NewClose();
                 }, true, null);
+                pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
                 pop.Render();
             }
         }
@@ -349,6 +382,46 @@ namespace BTSimpleMechAssembly
             }
             Log.LogDebug("using parts " + d.Description.Id + " " + removing);
             return removing;
+        }
+
+        public class SimpleMechAssembly_InterruptManager_AssembleMechEntry : SimGameInterruptManager.Entry
+        {
+            public readonly SimGameState s;
+            public readonly MechDef d;
+            public readonly MechBayPanel refresh;
+
+            public SimpleMechAssembly_InterruptManager_AssembleMechEntry(SimGameState s, MechDef d, MechBayPanel refresh)
+            {
+                type = SimGameInterruptManager.InterruptType.GenericPopup;
+                this.s = s;
+                this.d = d;
+                this.refresh = refresh;
+            }
+
+            public override bool IsUnique()
+            {
+                return false;
+            }
+
+            public override bool IsVisible()
+            {
+                return true;
+            }
+
+            public override bool NeedsFader()
+            {
+                return false;
+            }
+
+            public override void Render()
+            {
+                QueryMechAssemblyPopup(s, d, refresh, this);
+            }
+
+            public void NewClose()
+            {
+                Traverse.Create(this).Method("Close").GetValue();
+            }
         }
     }
 }
