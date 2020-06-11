@@ -41,6 +41,18 @@ namespace BTSimpleMechAssembly
                 {
                     if (m.Description.Id.Equals(kv.Value.Description.Id))
                         continue; // base variant
+                    if (Settings.CrossAssemblyExcludedMechs.Contains(kv.Value.Description.Id))
+                        continue; // excluded
+                    if (kv.Value.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+                        continue;
+                    if (m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.Description.UIName}")
+                        || m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.VariantName}")
+                        || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.Description.UIName}")
+                        || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.VariantName}"))
+                    {
+                        r.Add(kv.Value);
+                        continue;
+                    }
                     if (string.IsNullOrEmpty(kv.Value.Chassis.Description.UIName) || !kv.Value.Chassis.Description.UIName.Equals(m.Chassis.Description.UIName))
                         continue; // wrong or invalid variant
                     if (m.Chassis.MovementCapDef==null)
@@ -76,10 +88,6 @@ namespace BTSimpleMechAssembly
                     }
                     if (cont)
                         continue; // tag mismatch (endo/ferro)
-                    if (Settings.CrossAssemblyExcludedMechs.Contains(kv.Value.Description.Id))
-                        continue; // excluded
-                    if (kv.Value.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
-                        continue;
                     r.Add(kv.Value);
                 }
             }
@@ -105,12 +113,20 @@ namespace BTSimpleMechAssembly
             {
                 if (m.Description.Id.Equals(kv.Value.Description.Id))
                     continue; // base variant
-                if (string.IsNullOrEmpty(kv.Value.Chassis.Description.UIName) || !kv.Value.Chassis.Description.UIName.Equals(m.Chassis.Description.UIName))
-                    continue; // wrong or invalid variant
                 if (Settings.CrossAssemblyExcludedMechs.Contains(kv.Value.Description.Id))
                     continue; // excluded
                 if (kv.Value.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
                     continue;
+                if (m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.Description.UIName}")
+                    || m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.VariantName}")
+                    || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.Description.UIName}")
+                    || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.VariantName}"))
+                {
+                    r.Add(kv.Value);
+                    continue;
+                }
+                if (string.IsNullOrEmpty(kv.Value.Chassis.Description.UIName) || !kv.Value.Chassis.Description.UIName.Equals(m.Chassis.Description.UIName))
+                    continue; // wrong or invalid variant
                 if (!kv.Value.Chassis.ChassisTags.Contains(Settings.OmniMechTag)) // no omni
                     continue;
                 r.Add(kv.Value);
@@ -252,7 +268,7 @@ namespace BTSimpleMechAssembly
             foreach (MechDef m in mechs)
             {
                 int count = s.GetItemCount(m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
-                if (count <= 0)
+                if (count <= 0 && !CheckOmniKnown(s, d, m))
                     continue;
                 int com = GetNumberOfMechsOwnedOfType(s, m);
                 desc += string.Format("[[DM.MechDefs[{4}],{0} {1}]] ({2} Parts/{3} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, count, com, m.Description.Id);

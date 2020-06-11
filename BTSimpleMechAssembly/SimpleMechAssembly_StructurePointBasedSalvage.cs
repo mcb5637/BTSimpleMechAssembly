@@ -91,7 +91,7 @@ namespace BTSimpleMechAssembly
         }
 
         private static readonly ChassisLocations[] LP = new ChassisLocations[] { ChassisLocations.LeftArm, ChassisLocations.LeftLeg, ChassisLocations.LeftTorso, ChassisLocations.RightArm, ChassisLocations.RightLeg, ChassisLocations.RightTorso };
-        private static readonly ChassisLocations[] HP = new ChassisLocations[] { ChassisLocations.Head, ChassisLocations.CenterTorso };
+        private static readonly ChassisLocations[] HP = new ChassisLocations[] { ChassisLocations.CenterTorso };
 
         private static void GenerateSalvageForMech(Contract __instance, UnitResult u, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
         {
