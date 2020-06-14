@@ -53,8 +53,11 @@ namespace BTSimpleMechAssembly
 
             foreach (UnitResult u in enemyMechs)
             {
-                if (!(u.pilot.IsIncapacitated || u.mech.IsDestroyed || u.mech.Inventory.Any((x) => x.Def != null && x.Def.CriticalComponent && x.DamageLevel == ComponentDamageLevel.Destroyed)))
+                if (!(u.pilot.IsIncapacitated || u.pilot.HasEjected || u.mech.IsDestroyed || u.mech.Inventory.Any((x) => x.Def != null && x.Def.CriticalComponent && x.DamageLevel == ComponentDamageLevel.Destroyed)))
+                {
+                    log.Log($"skipping salvage for mech {u.mech.Description.UIName} {u.mech.Chassis.VariantName}, cause its not dead");
                     continue;
+                }
                 GenerateSalvageForMech(__instance, u, s, ___finalPotentialSalvage);
             }
 
@@ -96,7 +99,7 @@ namespace BTSimpleMechAssembly
         private static void GenerateSalvageForMech(Contract __instance, UnitResult u, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
         {
             ILog log = SimpleMechAssembly_Main.Log;
-            log.Log("generating salvage for mech " + u.mech.Description.Name);
+            log.Log($"generating salvage for mech {u.mech.Chassis.Description.UIName} {u.mech.Chassis.VariantName}");
             float maxstruct = 0;
             float currstruct = 0;
             foreach (ChassisLocations c in LP)
@@ -113,7 +116,7 @@ namespace BTSimpleMechAssembly
             int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
             int minparts = 1;
             float parts = left * maxparts;
-            log.Log(string.Format("calculated parts {0}", parts));
+            log.Log(string.Format("calculated parts {0}, ct is {1} of total points", parts, u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct));
             float fract = parts - (float) Math.Floor(parts);
             float rand = s.NetworkRandom.Float(0f, 1f);
             if (parts < minparts)

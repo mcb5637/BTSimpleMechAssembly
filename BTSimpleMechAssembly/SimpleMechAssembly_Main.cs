@@ -264,14 +264,14 @@ namespace BTSimpleMechAssembly
                 return;
             }
             List<MechDef> mechs = GetAllAssemblyVariants(s, d);
-            string desc = "Yang: We have Parts for the following mech variants. What should i build?\n\n";
+            string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts for the following mech variants. What should i build?\n";
             foreach (MechDef m in mechs)
             {
                 int count = s.GetItemCount(m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
                 if (count <= 0 && !CheckOmniKnown(s, d, m))
                     continue;
                 int com = GetNumberOfMechsOwnedOfType(s, m);
-                desc += string.Format("[[DM.MechDefs[{4}],{0} {1}]] ({2} Parts/{3} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, count, com, m.Description.Id);
+                desc += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete)\n";
             }
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble Mech?", desc);
             pop.AddButton("-", delegate
