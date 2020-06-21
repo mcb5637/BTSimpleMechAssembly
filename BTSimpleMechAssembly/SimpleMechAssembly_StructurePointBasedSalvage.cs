@@ -63,8 +63,10 @@ namespace BTSimpleMechAssembly
 
             foreach (VehicleDef d in enemyVehicles)
             {
+                log.Log($"generating salvage for vehicle {d.Chassis.Description.Name}");
                 foreach (VehicleComponentRef r in d.Inventory)
                 {
+                    log.Log(string.Format("added salvage {0} from nondestroyed loc", r.Def.Description.Id));
                     AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
                 }
             }
