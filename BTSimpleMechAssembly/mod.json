@@ -10,21 +10,24 @@
 
   "ConflictsWith": [ "AdjustedMechAssembly", "AdjustedMechAssemblyCC", "AdjustedMechSalvage", "CustomSalvage", "SalvageOperations" ],
 
-  "SettingsComment": "CrossAssemblyUpgradeRequired delete to not need an argo upgrade, OmniMechTag chassistag to enable omni functionality (unpack from storage allows variant selection)",
   "Settings": {
+    /*set to null for no upgrade required*/
     "CrossAssemblyUpgradeRequired": "argoUpgrade_mechBay_machineShop",
+    /*BEX simulation difficulty compatibility*/
     "CrossAssemblyAlwaysAllowIfSimulation": true,
     "CrossAssemblySpeedMatch": true,
     "CrossAssemblyTonnsMatch": true,
     "CrossAssemblyTagsMatch": [ "chassis_endo", "chassis_ferro", "chassis_DHS" ],
     "CrossAssemblyExcludedMechs": [],
+    /*set to null to disable omni functionality*/
     "OmniMechTag": "chassis_omni",
     "AssembledMechsNeedReadying": true,
     "StructurePointBasedSalvageActive": true,
     "StructurePointBasedSalvageLowPriorityFactor": 1,
-    "StructurePointBasedSalvageHighPriorityFactor": 2,
+    "StructurePointBasedSalvageHighPriorityFactor": 3.25,
     "StructurePointBasedSalvageMaxPartsFromMech": 3,
     "StructurePointBasedSalvageMinPartsFromMech": 1,
+    /*activate to salvage + parts*/
     "StructurePointBasedSalvageVanillaComponents": false
   }
 }
