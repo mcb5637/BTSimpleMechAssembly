@@ -66,7 +66,7 @@ namespace BTSimpleMechAssembly
                 log.Log($"generating salvage for vehicle {d.Chassis.Description.Name}");
                 foreach (VehicleComponentRef r in d.Inventory)
                 {
-                    log.Log(string.Format("added salvage {0} from nondestroyed loc", r.Def.Description.Id));
+                    log.Log(string.Format("added salvage {0}", r.Def.Description.Id));
                     AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
                 }
             }
@@ -116,7 +116,7 @@ namespace BTSimpleMechAssembly
             }
             float left = currstruct / maxstruct;
             int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
-            int minparts = 1;
+            int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
             float parts = left * maxparts;
             log.Log(string.Format("calculated parts {0}, ct is {1} of total points", parts, u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct));
             float fract = parts - (float) Math.Floor(parts);
@@ -153,12 +153,22 @@ namespace BTSimpleMechAssembly
 
         private static void AddMechPartSalvage(Contract __instance, MechDef d, SimGameState s, int num, List<SalvageDef> sal)
         {
+            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+            {
+                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted by mod.json");
+                return;
+            }
             object[] arg = new object[] { s.Constants, d, num, sal };
             Traverse.Create(__instance).Method("CreateAndAddMechPart", arg).GetValue(arg);
         }
 
         private static void AddUpgradeToSalvage(Contract __instance, MechComponentDef d, SimGameState s, List<SalvageDef> sal)
         {
+            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+            {
+                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted by mod.json");
+                return;
+            }
             if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageVanillaComponents)
             {
                 object[] args = new object[] { sal, d, ComponentDamageLevel.Functional, false, s.Constants, s.NetworkRandom, true };

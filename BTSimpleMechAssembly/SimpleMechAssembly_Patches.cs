@@ -32,7 +32,8 @@ namespace BTSimpleMechAssembly
                 MechDef d = __instance.DataManager.MechDefs.Get(id);
                 int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(__instance, d);
                 if (p >= __instance.Constants.Story.DefaultMechPartMax)
-                    SimpleMechAssembly_Main.QueryMechAssemblyPopup(__instance, d, null);
+                    //SimpleMechAssembly_Main.QueryMechAssemblyPopup(__instance, d, null);
+                    __instance.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(__instance, d, null), true);
             }
 
             return false; // completely replace
@@ -90,8 +91,8 @@ namespace BTSimpleMechAssembly
                         .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).Render();
                     return false;
                 }
-                SimpleMechAssembly_Main.QueryMechAssemblyPopup(___mechBay.Sim, d, ___mechBay);
-                //___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(___mechBay.Sim, d, ___mechBay), true);
+                //SimpleMechAssembly_Main.QueryMechAssemblyPopup(___mechBay.Sim, d, ___mechBay);
+                ___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(___mechBay.Sim, d, ___mechBay), true);
                 return false;
             }
             if (___selectedChassis.MechPartCount < ___selectedChassis.MechPartMax)
