@@ -255,41 +255,23 @@ namespace BTSimpleMechAssembly
             AudioEventManager.PlayAudioEvent("audioeventdef_simgame_vo_barks", "workqueue_readymech", WwiseManager.GlobalAudioObject, null);
         }
 
-        public static void SingleVariantPopup(string desc, SimGameState s, MechDef d, MechBayPanel refresh = null, SimpleMechAssembly_InterruptManager_AssembleMechEntry close = null)
+        public static void VariantPopup(string desc, SimGameState s, IEnumerable<MechDef> variantsToList, MechBayPanel refresh = null, SimpleMechAssembly_InterruptManager_AssembleMechEntry close = null)
         {
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble Mech?", desc);
-
-            pop.AddButton("Not now", delegate
+            bool hasMultipleVariants = variantsToList.Count() > 1;
+            string closeButtonText = hasMultipleVariants ? "-" : "Not now";
+            
+            pop.AddButton(closeButtonText, delegate
             {
                 if (close != null)
                     close.NewClose();
             }, true, null);
 
-                int count = s.GetItemCount(d.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
-                pop.AddButton("Yes", delegate
-                {
-                    PerformMechAssemblyStorePopup(s, d, refresh, close);
-                }, true, null);
 
-            pop.CancelOnEscape();
-            pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
-            pop.Render();
-        }
-
-        public static void MultiVariantPopup(string desc, SimGameState s, List<MechDef> ownedMechVariantParts, MechBayPanel refresh = null, SimpleMechAssembly_InterruptManager_AssembleMechEntry close = null)
-        {
-            GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble Mech?", desc);
-
-            pop.AddButton("-", delegate
+            foreach (MechDef m in variantsToList)
             {
-                if (close != null)
-                    close.NewClose();
-            }, true, null);
-
-            foreach (MechDef m in ownedMechVariantParts)
-            {
-                int count = s.GetItemCount(m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
-                pop.AddButton(string.Format("{0}", m.Chassis.VariantName).Substring(4), delegate
+                string buttonText = hasMultipleVariants ? string.Format("{0}", m.Chassis.VariantName) : "Yes";
+                pop.AddButton(buttonText, delegate
                 {
                     PerformMechAssemblyStorePopup(s, m, refresh, close);
                 }, true, null);
@@ -308,38 +290,36 @@ namespace BTSimpleMechAssembly
                     close.NewClose();
                 return;
             }
-            List<MechDef> ownedMechVariantParts = GetAllAssemblyVariants(s, d)
+            IEnumerable<MechDef> ownedMechVariantParts = GetAllAssemblyVariants(s, d)
                 .Where(m => s.GetItemCount(
-                    m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY) > 0 || CheckOmniKnown(s, d, m))
-                .ToList();
+                    m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY) > 0 || CheckOmniKnown(s, d, m));
 
             int selectedMechParts = s.GetItemCount(d.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
             int numberOfChassisOwned = GetNumberOfMechsOwnedOfType(s, d);
             string desc = $"Yang: {d.Chassis.YangsThoughts}\n\n";
 
-            List<string> additionalVariants = ownedMechVariantParts
+            IEnumerable<string> additionalVariants = ownedMechVariantParts
                 .Where(m => m.Description.Id != d.Description.Id)
                 .Select(m  =>
                 {
                     int count = s.GetItemCount(m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
                     int com = GetNumberOfMechsOwnedOfType(s, m);
                     return $"[[DM.MechDefs[{m.Description.Id}], {m.Chassis.VariantName}]] ({count} Parts/{com} Complete)";
-                })
-                .ToList();
+                });
 
             string selectedMechDisplayTitle = $"[[DM.MechDefs[{d.Description.Id}],{d.Chassis.VariantName}]] ({selectedMechParts} Parts/{numberOfChassisOwned} Complete)";
 
-            if (additionalVariants.Count > 0)
+            if (additionalVariants.Count() > 0)
             {
                 desc += $"We can build the {selectedMechDisplayTitle}" +
                     $", or one of these other variants of the {d.Chassis.Description.UIName}.\n\n";
                 desc += string.Join("\n", additionalVariants);
-                MultiVariantPopup(desc, s, ownedMechVariantParts, refresh, close);
+                VariantPopup(desc, s, ownedMechVariantParts, refresh, close);
             }
             else
             {
                 desc += $"Should I build the {selectedMechDisplayTitle}?";
-                SingleVariantPopup(desc, s, d, refresh, close);
+                VariantPopup(desc, s, new[] { d }, refresh, close);
             }
         }
 
