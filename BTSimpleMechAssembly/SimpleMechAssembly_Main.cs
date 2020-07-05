@@ -309,11 +309,16 @@ namespace BTSimpleMechAssembly
 
             string selectedMechDisplayTitle = $"[[DM.MechDefs[{d.Description.Id}],{d.Chassis.VariantName}]] ({selectedMechParts} Parts/{numberOfChassisOwned} Complete)";
 
-            if (additionalVariants.Count() > 0)
+            if (additionalVariants.Count() > 1)
             {
-                desc += $"We can build the {selectedMechDisplayTitle}" +
-                    $", or one of these other variants of the {d.Chassis.Description.UIName}.\n\n";
+                desc += $"We can build the {selectedMechDisplayTitle}, " +
+                    $"or one of these other variants of the {d.Chassis.Description.UIName}:\n\n";
                 desc += string.Join("\n", additionalVariants);
+                VariantPopup(desc, s, ownedMechVariantParts, refresh, close);
+            } else if (additionalVariants.Count() == 1)
+            {
+                desc += $"We can build the {selectedMechDisplayTitle}, or the\n" +
+                    $"{string.Join("", additionalVariants)} variant of the {d.Chassis.Description.UIName}.";
                 VariantPopup(desc, s, ownedMechVariantParts, refresh, close);
             }
             else
