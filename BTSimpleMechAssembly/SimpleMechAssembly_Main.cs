@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace BTSimpleMechAssembly
 {
@@ -18,10 +19,9 @@ namespace BTSimpleMechAssembly
 
         public static int GetNumPartsForAssembly(SimGameState s, MechDef m)
         {
-            List<MechDef> vars = GetAllAssemblyVariants(s, m);
             Dictionary<string, bool> has = new Dictionary<string, bool>();
             int p = 0;
-            foreach (MechDef d in vars)
+            foreach (MechDef d in GetAllAssemblyVariants(s, m))
             {
                 if (has.ContainsKey(d.Description.Id))
                     continue;
@@ -31,107 +31,116 @@ namespace BTSimpleMechAssembly
             return p;
         }
 
-        public static List<MechDef> GetAllAssemblyVariants(SimGameState s, MechDef m)
+        public static bool AreMechsCrossVariantCompartible(MechDef a, MechDef b)
         {
-            List<MechDef> r = new List<MechDef>();
-            r.Add(m);
+            if (Settings.CrossAssemblyExcludedMechs.Contains(a.Description.Id) && !a.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+                return false; // a excluded
+            if (Settings.CrossAssemblyExcludedMechs.Contains(b.Description.Id) && !b.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+                return false; // b excluded
+            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.Description.UIName}")
+                       || a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.VariantName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.Description.UIName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.VariantName}"))
+                return true; // tag enabled
+            if (string.IsNullOrEmpty(b.Chassis.Description.UIName) || !b.Chassis.Description.UIName.Equals(a.Chassis.Description.UIName))
+                return false; // wrong or invalid variant
+            if (a.Chassis.MovementCapDef == null)
+            {
+                a.Chassis.RefreshMovementCaps();
+                if (a.Chassis.MovementCapDef == null)
+                {
+                    Log.LogError(string.Format("{0} {1} (a) has no MovementCapDef, aborting speed comparison", a.Chassis.Description.UIName, a.Chassis.VariantName));
+                    return false;
+                }
+            }
+            if (b.Chassis.MovementCapDef == null)
+            {
+                b.Chassis.RefreshMovementCaps();
+                if (b.Chassis.MovementCapDef == null)
+                {
+                    Log.LogError(string.Format("{0} {1} (b) has no MovementCapDef, aborting speed comparison", b.Chassis.Description.UIName, b.Chassis.VariantName));
+                    return false;
+                }
+            }
+            if (Settings.CrossAssemblySpeedMatch && (a.Chassis.MovementCapDef.MaxWalkDistance != b.Chassis.MovementCapDef.MaxWalkDistance))
+                return false; // speed missmatch
+            if (Settings.CrossAssemblyTonnsMatch && (a.Chassis.Tonnage != b.Chassis.Tonnage))
+                return false; // tonnage missmatch
+            foreach (string tag in Settings.CrossAssemblyTagsMatch)
+            {
+                if (a.Chassis.ChassisTags.Contains(tag) != b.Chassis.ChassisTags.Contains(tag))
+                {
+                    return false; // tag missmatch
+                }
+            }
+            return true;
+        }
+
+        public static bool AreOmniMechsCompartible(MechDef a, MechDef b)
+        {
+            if (Settings.OmniMechTag == null)
+                return false;
+            if (!a.Chassis.ChassisTags.Contains(Settings.OmniMechTag)) // no omni
+                return false;
+            if (!b.Chassis.ChassisTags.Contains(Settings.OmniMechTag)) // no omni
+                return false;
+            if (Settings.CrossAssemblyExcludedMechs.Contains(a.Description.Id) && !a.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+                return false; // a excluded
+            if (Settings.CrossAssemblyExcludedMechs.Contains(b.Description.Id) && !b.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+                return false; // b excluded
+            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.Description.UIName}")
+                       || a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.VariantName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.Description.UIName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.VariantName}"))
+                return true; // tag enabled
+            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.Description.UIName}")
+                       || a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.VariantName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.Description.UIName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.VariantName}"))
+                return true; // tag enabled
+            if (string.IsNullOrEmpty(b.Chassis.Description.UIName) || !b.Chassis.Description.UIName.Equals(a.Chassis.Description.UIName))
+                return false; // wrong or invalid variant
+            return true;
+        }
+
+        public static IEnumerable<MechDef> GetAllAssemblyVariants(SimGameState s, MechDef m)
+        {
+            if (Settings.OmniMechTag != null && m.Chassis.ChassisTags.Contains(Settings.OmniMechTag))
+            {
+                return GetAllOmniVariants(s, m);
+            }
+            if (IsCrossAssemblyAllowed(s) && !Settings.CrossAssemblyExcludedMechs.Contains(m.Description.Id) && !m.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+            {
+                return GetAllNonOmnivariants(s, m);
+            }
+            return new List<MechDef>() { m };
+        }
+
+        public static IEnumerable<MechDef> GetAllNonOmnivariants(SimGameState s, MechDef m)
+        {
+            yield return m;
             if (IsCrossAssemblyAllowed(s) && !Settings.CrossAssemblyExcludedMechs.Contains(m.Description.Id) && !m.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (m.Description.Id.Equals(kv.Value.Description.Id))
-                        continue; // base variant
-                    if (Settings.CrossAssemblyExcludedMechs.Contains(kv.Value.Description.Id))
-                        continue; // excluded
-                    if (kv.Value.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
-                        continue;
-                    if (m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.Description.UIName}")
-                        || m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.VariantName}")
-                        || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.Description.UIName}")
-                        || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.VariantName}"))
-                    {
-                        r.Add(kv.Value);
-                        continue;
-                    }
-                    if (string.IsNullOrEmpty(kv.Value.Chassis.Description.UIName) || !kv.Value.Chassis.Description.UIName.Equals(m.Chassis.Description.UIName))
-                        continue; // wrong or invalid variant
-                    if (m.Chassis.MovementCapDef==null)
-                    {
-                        m.Chassis.RefreshMovementCaps();
-                        if (m.Chassis.MovementCapDef == null)
-                        {
-                            Log.LogError(string.Format("{0} {1} (m) has no MovementCapDef, aborting speed comparison", m.Chassis.Description.UIName, m.Chassis.VariantName));
-                            continue;
-                        }
-                    }
-                    if (kv.Value.Chassis.MovementCapDef == null)
-                    {
-                        kv.Value.Chassis.RefreshMovementCaps();
-                        if (kv.Value.Chassis.MovementCapDef == null)
-                        {
-                            Log.LogError(string.Format("{0} {1} (kv.Value) has no MovementCapDef, aborting speed comparison", kv.Value.Chassis.Description.UIName, kv.Value.Chassis.VariantName));
-                            continue;
-                        }
-                    }
-                    if (Settings.CrossAssemblySpeedMatch && (m.Chassis.MovementCapDef.MaxWalkDistance != kv.Value.Chassis.MovementCapDef.MaxWalkDistance))
-                        continue; // speed missmatch
-                    if (Settings.CrossAssemblyTonnsMatch && (m.Chassis.Tonnage != kv.Value.Chassis.Tonnage))
-                        continue; // tonnage missmatch
-                    bool cont = false;
-                    foreach (string tag in Settings.CrossAssemblyTagsMatch)
-                    {
-                        if (m.Chassis.ChassisTags.Contains(tag) != kv.Value.Chassis.ChassisTags.Contains(tag))
-                        {
-                            cont = true;
-                            break;
-                        }
-                    }
-                    if (cont)
-                        continue; // tag mismatch (endo/ferro)
-                    r.Add(kv.Value);
+                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && AreMechsCrossVariantCompartible(m, kv.Value))
+                        yield return kv.Value;
                 }
             }
-            if (Settings.OmniMechTag != null && m.Chassis.ChassisTags.Contains(Settings.OmniMechTag))
-            {
-                r = r.Union(GetAllOmniVariants(s, m)).ToList();
-            }
-
-            return r;
         }
 
-        public static List<MechDef> GetAllOmniVariants(SimGameState s, MechDef m)
+        public static IEnumerable<MechDef> GetAllOmniVariants(SimGameState s, MechDef m)
         {
-            List<MechDef> r = new List<MechDef>();
             if (Settings.OmniMechTag == null)
-                return r;
+                yield break;
             if (!m.Chassis.ChassisTags.Contains(Settings.OmniMechTag)) // no omni, return empty list
-                return r;
-            r.Add(m);
-            if (Settings.CrossAssemblyExcludedMechs.Contains(m.Description.Id) || m.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly")) // excluded
-                return r;
+                yield break;
+            yield return m;
             foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
             {
-                if (m.Description.Id.Equals(kv.Value.Description.Id))
-                    continue; // base variant
-                if (Settings.CrossAssemblyExcludedMechs.Contains(kv.Value.Description.Id))
-                    continue; // excluded
-                if (kv.Value.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
-                    continue;
-                if (m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.Description.UIName}")
-                    || m.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{kv.Value.Chassis.VariantName}")
-                    || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.Description.UIName}")
-                    || kv.Value.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{m.Chassis.VariantName}"))
-                {
-                    r.Add(kv.Value);
-                    continue;
-                }
-                if (string.IsNullOrEmpty(kv.Value.Chassis.Description.UIName) || !kv.Value.Chassis.Description.UIName.Equals(m.Chassis.Description.UIName))
-                    continue; // wrong or invalid variant
-                if (!kv.Value.Chassis.ChassisTags.Contains(Settings.OmniMechTag)) // no omni
-                    continue;
-                r.Add(kv.Value);
+                if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && AreOmniMechsCompartible(m, kv.Value))
+                    yield return kv.Value;
             }
-            return r;
         }
 
         public static bool IsVariantKnown(SimGameState s, MechDef d)
@@ -200,24 +209,23 @@ namespace BTSimpleMechAssembly
             return s.PurchasedArgoUpgrades.Contains(Settings.CrossAssemblyUpgradeRequired);
         }
 
-        public static void UnStorageOmniMechPopup(SimGameState s, MechDef d, MechBayPanel refresh)
+        public static void UnStorageOmniMechPopup(SimGameState s, MechDef d, Action onClose)
         {
             if (Settings.OmniMechTag == null)
+            {
+                onClose?.Invoke();
                 throw new InvalidOperationException("omnimechs disabled");
+            }
             int mechbay = s.GetFirstFreeMechBay();
             if (mechbay < 0)
-                return;
-            List<MechDef> mechs = GetAllOmniVariants(s, d);
-            string desc = "Yang: We know the following Omni variants. What should i ready this mech as?\n\n";
-            foreach (MechDef m in mechs)
             {
-                if (!CheckOmniKnown(s, d, m))
-                    continue;
-                int com = GetNumberOfMechsOwnedOfType(s, m);
-                desc += string.Format("[[DM.MechDefs[{3}],{0} {1}]] ({2} Complete)\n", m.Chassis.Description.UIName, m.Chassis.VariantName, com, m.Description.Id);
+                onClose?.Invoke();
+                return;
             }
+            IEnumerable<MechDef> mechs = GetAllOmniVariants(s, d);
+            string desc = "Yang: We know the following Omni variants. What should i ready this mech as?\n\n";
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Ready Mech?", desc);
-            pop.AddButton("nothing", null, true, null);
+            pop.AddButton("nothing", onClose, true, null);
             foreach (MechDef m in mechs)
             {
                 MechDef var = m; // new var to keep it for lambda
@@ -228,12 +236,10 @@ namespace BTSimpleMechAssembly
                     Log.Log("ready omni as: " + var.Description.Id);
                     s.ScrapInactiveMech(d.Chassis.Description.Id, false);
                     ReadyMech(s, new MechDef(var, s.GenerateSimGameUID(), false), mechbay);
-                    if (refresh!=null)
-                    {
-                        refresh.RefreshData(false);
-                        refresh.ViewBays();
-                    }
+                    onClose?.Invoke();
                 }, true, null);
+                int com = GetNumberOfMechsOwnedOfType(s, m);
+                pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({com} Complete)\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
             pop.Render();
@@ -255,29 +261,19 @@ namespace BTSimpleMechAssembly
             AudioEventManager.PlayAudioEvent("audioeventdef_simgame_vo_barks", "workqueue_readymech", WwiseManager.GlobalAudioObject, null);
         }
 
-        public static void QueryMechAssemblyPopup(SimGameState s, MechDef d, MechBayPanel refresh = null, SimpleMechAssembly_InterruptManager_AssembleMechEntry close =null)
+        public static void QueryMechAssemblyPopup(SimGameState s, MechDef d, Action onClose = null)
         {
             if (GetNumPartsForAssembly(s, d) < s.Constants.Story.DefaultMechPartMax)
             {
-                if (close != null)
-                    close.NewClose();
+                onClose?.Invoke();
                 return;
             }
-            List<MechDef> mechs = GetAllAssemblyVariants(s, d);
+            IEnumerable<MechDef> mechs = GetAllAssemblyVariants(s, d);
             string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts for the following mech variants. What should i build?\n";
-            foreach (MechDef m in mechs)
-            {
-                int count = s.GetItemCount(m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
-                if (count <= 0 && !CheckOmniKnown(s, d, m))
-                    continue;
-                int com = GetNumberOfMechsOwnedOfType(s, m);
-                desc += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete)\n";
-            }
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble Mech?", desc);
             pop.AddButton("-", delegate
             {
-                if (close != null)
-                    close.NewClose();
+                onClose?.Invoke();
             }, true, null);
             foreach (MechDef m in mechs)
             {
@@ -287,48 +283,33 @@ namespace BTSimpleMechAssembly
                     continue;
                 pop.AddButton(string.Format("{0}", var.Chassis.VariantName), delegate
                 {
-                    PerformMechAssemblyStorePopup(s, var, refresh, close);
+                    PerformMechAssemblyStorePopup(s, var, onClose);
                 }, true, null);
+                int com = GetNumberOfMechsOwnedOfType(s, m);
+                pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete)\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
             pop.Render();
         }
 
-        public static void PerformMechAssemblyStorePopup(SimGameState s, MechDef d, MechBayPanel refresh, SimpleMechAssembly_InterruptManager_AssembleMechEntry close)
+        public static void PerformMechAssemblyStorePopup(SimGameState s, MechDef d, Action onClose)
         {
             MechDef toAdd = PerformMechAssembly(s, d);
             int mechbay = s.GetFirstFreeMechBay();
-            if (mechbay < 0) // no space - direct storage
+            GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled", $"Yang: [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]] finished!\n{d.Chassis.YangsThoughts}\n\n");
+            pop.AddButton("storage", delegate
             {
                 StoreMech(s, toAdd);
-                Log.Log("no space, direct storage");
-                if (refresh != null)
-                    refresh.RefreshData(false);
-                GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled",
-                    string.Format("Yang: [[DM.MechDefs[{3}],{1} {2}]] finished!\n{0}\n\nWe have no space for a new mech, so it goes into storage.",
-                    d.Chassis.YangsThoughts, d.Chassis.Description.UIName, d.Chassis.VariantName, d.Description.Id));
-                pop.AddButton("ok", delegate
-                {
-                    if (close != null)
-                        close.NewClose();
-                }, true, null);
-                pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
-                pop.Render();
+                Log.Log("direct storage");
+                onClose?.Invoke();
+            }, true, null);
+            if (mechbay < 0) // no space - direct storage
+            {
+                pop.Body += "We have no space for a new mech, so it goes into storage.";
             }
             else
             {
-                GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled",
-                    string.Format("Yang: [[DM.MechDefs[{3}],{1} {2}]] finished!\n{0}\n\nShould i put it into storage or ready it for combat?.",
-                    d.Chassis.YangsThoughts, d.Chassis.Description.UIName, d.Chassis.VariantName, d.Description.Id));
-                pop.AddButton("storage", delegate
-                {
-                    StoreMech(s, toAdd);
-                    Log.Log("direct storage");
-                    if (refresh != null)
-                        refresh.RefreshData(false);
-                    if (close != null)
-                        close.NewClose();
-                }, true, null);
+                pop.Body += "Should i put it into storage or ready it for combat?";
                 pop.AddButton("ready it", delegate
                 {
                     if (Settings.AssembledMechsNeedReadying)
@@ -336,14 +317,23 @@ namespace BTSimpleMechAssembly
                     else
                         s.AddMech(mechbay, toAdd, true, false, false);
                     Log.Log("added to bay " + mechbay);
-                    if (refresh != null)
-                        refresh.RefreshData(false);
-                    if (close != null)
-                        close.NewClose();
+                    onClose?.Invoke();
                 }, true, null);
-                pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
-                pop.Render();
             }
+            if (IsSellingAllowed(s))
+            {
+                int cost = GetMechSellCost(s, d);
+                pop.Body += $"\n\nDarius: We could also sell it for {SimGameState.GetCBillString(cost)}, although Yang would certanly not like it.";
+                pop.AddButton("sell it", delegate
+                {
+                    s.AddFunds(cost, "Store", true, true);
+                    Log.Log("sold");
+                    s.CompanyStats.ModifyStat<int>("Mission", 0, "COMPANY_MechsAdded", StatCollection.StatOperation.Int_Add, 1, -1, true);
+                    onClose?.Invoke();
+                }, true, null);
+            }
+            pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
+            pop.Render();
         }
 
         private static void StoreMech(SimGameState s, MechDef d)
@@ -355,7 +345,7 @@ namespace BTSimpleMechAssembly
         public static MechDef PerformMechAssembly(SimGameState s, MechDef d)
         {
             Log.Log("mech assembly: " + d.Description.Id);
-            List<MechDef> mechs = GetAllAssemblyVariants(s, d);
+            IEnumerable<MechDef> mechs = GetAllAssemblyVariants(s, d);
             int requiredParts = s.Constants.Story.DefaultMechPartMax;
             requiredParts -= MechAssemblyRemoveParts(s, d, requiredParts, 0); // use all base variant parts
             if (requiredParts > 0)
@@ -400,18 +390,39 @@ namespace BTSimpleMechAssembly
             return removing;
         }
 
+        public static bool IsSellingAllowed(SimGameState s)
+        {
+            if (!s.CurSystem.CanUseSystemStore())
+                return false;
+            if (s.TravelState != SimGameTravelStatus.IN_SYSTEM)
+                return false;
+            return true;
+        }
+
+        public static int GetMechSellCost(SimGameState s, MechDef m)
+        {
+            int c = m.Description.Cost;
+            foreach (MechComponentRef r in m.Inventory)
+            {
+                if (!r.IsFixed)
+                    c += r.Def.Description.Cost;
+            }
+            c = Mathf.FloorToInt(c * s.Constants.Finances.ShopSellModifier);
+            return c;
+        }
+
         public class SimpleMechAssembly_InterruptManager_AssembleMechEntry : SimGameInterruptManager.Entry
         {
             public readonly SimGameState s;
             public readonly MechDef d;
-            public readonly MechBayPanel refresh;
+            public readonly Action onClose;
 
-            public SimpleMechAssembly_InterruptManager_AssembleMechEntry(SimGameState s, MechDef d, MechBayPanel refresh)
+            public SimpleMechAssembly_InterruptManager_AssembleMechEntry(SimGameState s, MechDef d, Action onClose)
             {
                 type = SimGameInterruptManager.InterruptType.GenericPopup;
                 this.s = s;
                 this.d = d;
-                this.refresh = refresh;
+                this.onClose = (onClose == null) ? NewClose : (onClose + NewClose);
             }
 
             public override bool IsUnique()
@@ -431,7 +442,47 @@ namespace BTSimpleMechAssembly
 
             public override void Render()
             {
-                QueryMechAssemblyPopup(s, d, refresh, this);
+                QueryMechAssemblyPopup(s, d, onClose);
+            }
+
+            public void NewClose()
+            {
+                Traverse.Create(this).Method("Close").GetValue();
+            }
+        }
+
+        public class SimpleMechAssembly_InterruptManager_UnStorageOmniEntry : SimGameInterruptManager.Entry
+        {
+            public readonly SimGameState s;
+            public readonly MechDef d;
+            public readonly Action onClose;
+
+            public SimpleMechAssembly_InterruptManager_UnStorageOmniEntry(SimGameState s, MechDef d, Action onClose)
+            {
+                type = SimGameInterruptManager.InterruptType.GenericPopup;
+                this.s = s;
+                this.d = d;
+                this.onClose = (onClose == null) ? NewClose : (onClose + NewClose);
+            }
+
+            public override bool IsUnique()
+            {
+                return false;
+            }
+
+            public override bool IsVisible()
+            {
+                return true;
+            }
+
+            public override bool NeedsFader()
+            {
+                return false;
+            }
+
+            public override void Render()
+            {
+                UnStorageOmniMechPopup(s, d, onClose);
             }
 
             public void NewClose()
