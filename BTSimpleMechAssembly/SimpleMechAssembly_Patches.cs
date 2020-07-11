@@ -70,6 +70,20 @@ namespace BTSimpleMechAssembly
         }
     }
 
+    [HarmonyPatch(typeof(RewardsPopup), "AddItemsToInventory")]
+    class RewardsPopup_AddItemsToInventory
+    {
+        public static void Prefix()
+        {
+            SimGameState_ResolveCompleteContract.Prefix();
+        }
+
+        public static void Postfix(SimGameState ___sim)
+        {
+            SimGameState_ResolveCompleteContract.Postfix(___sim);
+        }
+    }
+
     [HarmonyPatch(typeof(MechBayChassisInfoWidget), "OnReadyClicked")]
     class MechBayChassisInfoWidget_OnReadyClicked
     {
