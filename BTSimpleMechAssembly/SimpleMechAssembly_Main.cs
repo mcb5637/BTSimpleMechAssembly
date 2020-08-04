@@ -160,12 +160,13 @@ namespace BTSimpleMechAssembly
                 }
             }
             Traverse c = Traverse.Create(s);
-            object[] args = new object[] { d.Chassis.Description.Id, "MECHPART" };
+            object[] args = new object[] { d.Description.Id, "MECHPART" };
             string id = c.Method("GetItemStatID", args).GetValue<string>(args);
             if (s.CompanyStats.ContainsStatistic(id))
             {
                 return true;
             }
+            args[0] = d.Chassis.Description.Id;
             args[1] = d.GetType();
             id = c.Method("GetItemStatID", args).GetValue<string>(args);
             if (s.CompanyStats.ContainsStatistic(id))
