@@ -28,7 +28,8 @@
     "StructurePointBasedSalvageMaxPartsFromMech": 3,
     "StructurePointBasedSalvageMinPartsFromMech": 1,
     /*activate to salvage + parts*/
-    "StructurePointBasedSalvageVanillaComponents": false,
-    "StructurePointBasedSalvageSalvageBlacklist": [ "Gear_General_Robinson_TG120_Drive_Train", "Gear_Cockpit_Tacticon_B2000_Battle_Computer" ]
+    "StructurePointBasedSalvageVanillaComponents": true,
+    "StructurePointBasedSalvageSalvageBlacklist": [ "Gear_General_Robinson_TG120_Drive_Train", "Gear_Cockpit_Tacticon_B2000_Battle_Computer" ],
+    "StructurePointBasedSalvageTurretComponentSalvageChance": 0.25
   }
 }

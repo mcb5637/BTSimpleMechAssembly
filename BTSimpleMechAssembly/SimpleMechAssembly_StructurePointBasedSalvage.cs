@@ -31,20 +31,20 @@ namespace BTSimpleMechAssembly
 
             foreach (UnitResult u in lostUnits)
             {
-                log.Log(string.Format("player mech {0} was lost", u.mech.Description.Name));
+                log.Log($"player mech {u.mech.Description.Name} was lost");
                 if (u.mech.GetLocationLoadoutDef(ChassisLocations.CenterTorso).CurrentInternalStructure > 0f)
                 {
-                    log.Log(string.Format("ct not desytroyed, auto recovery"));
+                    log.Log("ct not desytroyed, auto recovery");
                     u.mechLost = false;
                 }
                 else if (s.NetworkRandom.Float(0f, 1f) <= s.Constants.Salvage.DestroyedMechRecoveryChance)
                 {
-                    log.Log(string.Format("recovery roll succeeded"));
+                    log.Log("recovery roll succeeded");
                     u.mechLost = false;
                 }
                 else
                 {
-                    log.Log(string.Format("recovery roll failed, unit goes into salvage pool"));
+                    log.Log("recovery roll failed, unit goes into salvage pool");
                     u.mechLost = true;
                     GenerateSalvageForMech(__instance, u, s, ___finalPotentialSalvage);
                 }
@@ -66,8 +66,29 @@ namespace BTSimpleMechAssembly
                 log.Log($"generating salvage for vehicle {d.Chassis.Description.Name}");
                 foreach (VehicleComponentRef r in d.Inventory)
                 {
-                    log.Log(string.Format("added salvage {0}", r.Def.Description.Id));
+                    log.Log($"added salvage {r.Def.Description.Id}");
                     AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
+                }
+            }
+
+            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance > 0)
+            {
+                foreach (Turret t in __instance.BattleTechGame.Combat.AllEnemies.OfType<Turret>().Where(t => t.IsDead))
+                {
+                    log.Log($"generating salvage for turret {t.TurretDef.Description.Name}");
+                    foreach (TurretComponentRef r in t.TurretDef.Inventory)
+                    {
+                        float rand = s.NetworkRandom.Float(0f, 1f);
+                        if (rand < SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance)
+                        {
+                            log.Log($"added salvage {r.Def.Description.Id} ({rand}<{SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance})");
+                            AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
+                        }
+                        else
+                        {
+                            log.Log($"missed salvage {r.Def.Description.Id} ({rand}>={SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance})");
+                        }
+                    }
                 }
             }
 
@@ -118,22 +139,22 @@ namespace BTSimpleMechAssembly
             int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
             int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
             float parts = left * maxparts;
-            log.Log(string.Format("calculated parts {0}, ct is {1} of total points", parts, u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct));
+            log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
             float fract = parts - (float) Math.Floor(parts);
             float rand = s.NetworkRandom.Float(0f, 1f);
             if (parts < minparts)
             {
-                log.Log(string.Format("below min parts, getting min parts instead"));
+                log.Log("below min parts, getting min parts instead");
                 AddMechPartSalvage(__instance, u.mech, s, minparts, ___finalPotentialSalvage);
             }
             else if (fract > rand)
             {
-                log.Log(string.Format("rolled low on parts, getting {0} + 1 ({1}>{2})", Math.Floor(parts), fract, rand));
+                log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1 ({fract}>{rand})");
                 AddMechPartSalvage(__instance, u.mech, s, (int) Math.Ceiling(parts), ___finalPotentialSalvage);
             }
             else
             {
-                log.Log(string.Format("rolled high on parts, getting {0} ({1}<={2})", Math.Floor(parts), fract, rand));
+                log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
                 AddMechPartSalvage(__instance, u.mech, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
             }
 
@@ -144,7 +165,7 @@ namespace BTSimpleMechAssembly
                 {
                     if (u.mech.GetLocationLoadoutDef(r.MountedLocation).CurrentInternalStructure > 0f)
                     {
-                        log.Log(string.Format("added salvage {0} from nondestroyed loc", r.Def.Description.Id));
+                        log.Log($"added salvage {r.Def.Description.Id} from nondestroyed loc");
                         AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
                     }
                 }
