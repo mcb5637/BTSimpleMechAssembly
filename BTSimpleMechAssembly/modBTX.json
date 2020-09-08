@@ -17,15 +17,15 @@
     /*set to null for no upgrade required*/
     "CrossAssemblyUpgradeRequired": "argoUpgrade_mechBay_machineShop",
     /*BEX simulation difficulty compatibility*/
-    "BTXCrossAssemblyAlwaysAllowIfSimulation": false,
+    "BTXCrossAssemblyAlwaysAllowIfSimulation": true,
     /*defines which mech statistics have to match*/
     "CrossAssemblySpeedMatch": true,
     "CrossAssemblyTonnsMatch": true,
-    "CrossAssemblyTagsMatch": [],
+    "CrossAssemblyTagsMatch": [ "chassis_endo", "chassis_ferro", "chassis_DHS" ],
     /*exclude mechs from crossassembly (if you dont want to add tags to them)*/
     "CrossAssemblyExcludedMechs": [],
     /*set to a string to enable omni mode for them (on ready you can choose which variant you want to ready, provided you know the variant)*/
-    "OmniMechTag": null,
+    "OmniMechTag": "chassis_omni",
     /*do fresh assembled mechs need to be readied before use? does not apply to selling/storing*/
     "AssembledMechsNeedReadying": true,
     /*modified salvage, based on structure points left (high priority is CT, head is no priority, rest low)*/

@@ -205,7 +205,7 @@ namespace BTSimpleMechAssembly
         {
             if (Settings.CrossAssemblyUpgradeRequired==null)
                 return true;
-            if (Settings.CrossAssemblyAlwaysAllowIfSimulation && s.Constants.Story.MaximumDebt == 42)
+            if (Settings.BTXCrossAssemblyAlwaysAllowIfSimulation && s.Constants.Story.MaximumDebt == 42)
                 return true;
             return s.PurchasedArgoUpgrades.Contains(Settings.CrossAssemblyUpgradeRequired);
         }
