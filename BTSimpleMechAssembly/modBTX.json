@@ -2,7 +2,7 @@
   "Name": "BTSimpleMechAssembly",
   "Enabled": true,
 
-  "Version": "1.1.1",
+  "Version": "1.1.2",
   "Description": "",
   "Author": "mcb",
   "Website": "https://github.com/mcb5637/BTSimpleMechAssembly",
@@ -23,7 +23,7 @@
     "CrossAssemblyTonnsMatch": true,
     "CrossAssemblyTagsMatch": [ "chassis_endo", "chassis_ferro", "chassis_DHS" ],
     /*exclude mechs from crossassembly (if you dont want to add tags to them)*/
-    "CrossAssemblyExcludedMechs": [],
+    "CrossAssemblyExcludedMechs": [ "mechdef_mad_cat_timber_wolf-PRYDE" ],
     /*set to a string to enable omni mode for them (on ready you can choose which variant you want to ready, provided you know the variant)*/
     "OmniMechTag": "chassis_omni",
     /*do fresh assembled mechs need to be readied before use? does not apply to selling/storing*/

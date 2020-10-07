@@ -103,6 +103,11 @@ namespace BTSimpleMechAssembly
             return true;
         }
 
+        public static bool IsMechDefCustom(MechDef d)
+        {
+            return d.Description.Id.Contains("mechdef_CUSTOM_");
+        }
+
         public static IEnumerable<MechDef> GetAllAssemblyVariants(SimGameState s, MechDef m)
         {
             if (Settings.OmniMechTag != null && m.Chassis.ChassisTags.Contains(Settings.OmniMechTag))
@@ -123,7 +128,7 @@ namespace BTSimpleMechAssembly
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && AreMechsCrossVariantCompartible(m, kv.Value))
+                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !IsMechDefCustom(kv.Value) && AreMechsCrossVariantCompartible(m, kv.Value))
                         yield return kv.Value;
                 }
             }
@@ -138,7 +143,7 @@ namespace BTSimpleMechAssembly
             yield return m;
             foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
             {
-                if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && AreOmniMechsCompartible(m, kv.Value))
+                if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !IsMechDefCustom(kv.Value) && AreOmniMechsCompartible(m, kv.Value))
                     yield return kv.Value;
             }
         }
@@ -232,7 +237,7 @@ namespace BTSimpleMechAssembly
                 MechDef var = m; // new var to keep it for lambda
                 if (!CheckOmniKnown(s, d, m))
                     continue;
-                pop.AddButton(string.Format("{0} {1}", var.Chassis.Description.UIName, var.Chassis.VariantName), delegate
+                pop.AddButton($"{var.Chassis.VariantName}", delegate
                 {
                     Log.Log("ready omni as: " + var.Description.Id);
                     s.ScrapInactiveMech(d.Chassis.Description.Id, false);
