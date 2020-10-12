@@ -14,6 +14,7 @@ namespace BTSimpleMechAssembly
         public bool CrossAssemblyTonnsMatch = true;
         public string[] CrossAssemblyTagsMatch = new string[] {};
         public string[] CrossAssemblyExcludedMechs = new string[] {};
+        public string[] CrossAssemblyInventoryMatch = new string[] { };
         public string OmniMechTag = null;
         public bool AssembledMechsNeedReadying = false;
         public bool StructurePointBasedSalvageActive = false;

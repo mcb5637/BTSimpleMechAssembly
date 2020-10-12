@@ -22,6 +22,7 @@
     "CrossAssemblySpeedMatch": true,
     "CrossAssemblyTonnsMatch": true,
     "CrossAssemblyTagsMatch": [ "chassis_endo", "chassis_ferro", "chassis_DHS" ],
+    "CrossAssemblyInventoryMatch": [ "Gear_XL_Engine", "Gear_XL_Engine_Clan", "Gear_XL_Engine_Clan_2" ],
     /*exclude mechs from crossassembly (if you dont want to add tags to them)*/
     "CrossAssemblyExcludedMechs": [ "mechdef_mad_cat_timber_wolf-PRYDE" ],
     /*set to a string to enable omni mode for them (on ready you can choose which variant you want to ready, provided you know the variant)*/

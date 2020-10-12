@@ -22,6 +22,7 @@
     "CrossAssemblySpeedMatch": true,
     "CrossAssemblyTonnsMatch": true,
     "CrossAssemblyTagsMatch": [],
+    "CrossAssemblyInventoryMatch": [],
     /*exclude mechs from crossassembly (if you dont want to add tags to them)*/
     "CrossAssemblyExcludedMechs": [],
     /*set to a string to enable omni mode for them (on ready you can choose which variant you want to ready, provided you know the variant)*/

@@ -73,7 +73,17 @@ namespace BTSimpleMechAssembly
                     return false; // tag missmatch
                 }
             }
+            foreach (string it in Settings.CrossAssemblyInventoryMatch)
+            {
+                if (CountMechInventory(a, it) != CountMechInventory(b, it))
+                    return false; // inventory mismatch
+            }
             return true;
+        }
+
+        public static int CountMechInventory(MechDef d, string it)
+        {
+            return d.Inventory.Count((i) => i.ComponentDefID.Equals(it));
         }
 
         public static bool AreOmniMechsCompartible(MechDef a, MechDef b)
