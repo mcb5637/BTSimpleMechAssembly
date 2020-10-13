@@ -126,12 +126,12 @@ namespace BTSimpleMechAssembly
             }
             if (IsCrossAssemblyAllowed(s) && !Settings.CrossAssemblyExcludedMechs.Contains(m.Description.Id) && !m.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
             {
-                return GetAllNonOmnivariants(s, m);
+                return GetAllNonOmniVariants(s, m);
             }
             return new List<MechDef>() { m };
         }
 
-        public static IEnumerable<MechDef> GetAllNonOmnivariants(SimGameState s, MechDef m)
+        public static IEnumerable<MechDef> GetAllNonOmniVariants(SimGameState s, MechDef m)
         {
             yield return m;
             if (IsCrossAssemblyAllowed(s) && !Settings.CrossAssemblyExcludedMechs.Contains(m.Description.Id) && !m.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
