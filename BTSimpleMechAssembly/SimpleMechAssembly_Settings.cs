@@ -25,5 +25,6 @@ namespace BTSimpleMechAssembly
         public bool StructurePointBasedSalvageVanillaComponents = false;
         public string[] StructurePointBasedSalvageSalvageBlacklist = new string[] { };
         public float StructurePointBasedSalvageTurretComponentSalvageChance = 1;
+        public bool LogLevelLog = false;
     }
 }

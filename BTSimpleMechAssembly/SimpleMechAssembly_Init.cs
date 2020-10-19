@@ -28,6 +28,8 @@ namespace BTSimpleMechAssembly
                 SimpleMechAssembly_Main.Log.LogException("error reading settings, using defaults", e);
                 SimpleMechAssembly_Main.Settings = new SimpleMechAssembly_Settings();
             }
+            if (SimpleMechAssembly_Main.Settings.LogLevelLog)
+                Logger.SetLoggerLevel("BTSimpleMechAssembly", LogLevel.Log);
             var harmony = HarmonyInstance.Create("com.github.mcb5637.BTSimpleMechAssembly");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageActive)
