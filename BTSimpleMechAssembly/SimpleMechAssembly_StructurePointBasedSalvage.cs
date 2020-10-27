@@ -5,6 +5,7 @@ using HBS.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -13,14 +14,19 @@ namespace BTSimpleMechAssembly
 {
     class SimpleMechAssembly_StructurePointBasedSalvage
     {
-        public static bool Prefix(Contract __instance, List<UnitResult> enemyMechs, List<VehicleDef> enemyVehicles, List<UnitResult> lostUnits,
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            yield return new CodeInstruction(OpCodes.Ret);
+        }
+
+        public static void Postfix(Contract __instance, List<UnitResult> enemyMechs, List<VehicleDef> enemyVehicles, List<UnitResult> lostUnits,
             ref List<SalvageDef> ___finalPotentialSalvage)
         {
             ILog log = SimpleMechAssembly_Main.Log;
             if (__instance.BattleTechGame.Simulation == null)
             {
                 log.LogError("trying to generarte salvage without a simgame");
-                return false;
+                return;
             }
             SimGameState s = __instance.BattleTechGame.Simulation;
             ___finalPotentialSalvage = new List<SalvageDef>();
@@ -113,7 +119,6 @@ namespace BTSimpleMechAssembly
             Traverse.Create(__instance).Property("FinalSalvageCount").SetValue(Mathf.FloorToInt(persalpot * mod));
             Traverse.Create(__instance).Property("FinalPrioritySalvageCount").SetValue(Math.Min(8, Mathf.FloorToInt(__instance.FinalSalvageCount * s.Constants.Salvage.PrioritySalvageModifier)));
 
-            return false;
         }
 
         private static readonly ChassisLocations[] LP = new ChassisLocations[] { ChassisLocations.LeftArm, ChassisLocations.LeftLeg, ChassisLocations.LeftTorso, ChassisLocations.RightArm, ChassisLocations.RightLeg, ChassisLocations.RightTorso };

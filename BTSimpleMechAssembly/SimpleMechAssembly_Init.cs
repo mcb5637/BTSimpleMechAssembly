@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly:AssemblyVersion("1.1.3")]
+[assembly: AssemblyVersion("1.1.3")]
 
 namespace BTSimpleMechAssembly
 {
@@ -33,7 +33,10 @@ namespace BTSimpleMechAssembly
             var harmony = HarmonyInstance.Create("com.github.mcb5637.BTSimpleMechAssembly");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageActive)
-                harmony.Patch(typeof(Contract).GetMethod("GenerateSalvage", BindingFlags.NonPublic | BindingFlags.Instance), new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Prefix")), null, null);
+                harmony.Patch(typeof(Contract).GetMethod("GenerateSalvage", BindingFlags.NonPublic | BindingFlags.Instance),
+                    null,
+                    new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Postfix")),
+                    new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Transpiler")));
         }
     }
 }
