@@ -43,6 +43,11 @@ namespace BTSimpleMechAssembly
                     log.Log("ct not desytroyed, auto recovery");
                     u.mechLost = false;
                 }
+                else if (!IsPlayerMech(u.mech, s))
+                {
+                    log.Log("contract added player mech, auto recovery");
+                    u.mechLost = false;
+                }
                 else if (s.NetworkRandom.Float(0f, 1f) <= s.Constants.Salvage.DestroyedMechRecoveryChance)
                 {
                     log.Log("recovery roll succeeded");
@@ -55,7 +60,6 @@ namespace BTSimpleMechAssembly
                     GenerateSalvageForMech(__instance, u, s, ___finalPotentialSalvage);
                 }
             }
-
 
             foreach (UnitResult u in enemyMechs)
             {
@@ -224,6 +228,11 @@ namespace BTSimpleMechAssembly
             }
             else
                 SimpleMechAssembly_Main.Log.LogError("failed to add upgrade");
+        }
+
+        public static bool IsPlayerMech(MechDef m, SimGameState s)
+        {
+            return s.ActiveMechs.Values.Select((a) => a.GUID).Contains(m.GUID);
         }
     }
 }
