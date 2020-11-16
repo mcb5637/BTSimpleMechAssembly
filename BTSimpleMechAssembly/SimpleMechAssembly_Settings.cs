@@ -22,7 +22,6 @@ namespace BTSimpleMechAssembly
         public float StructurePointBasedSalvageHighPriorityFactor = 2f;
         public int StructurePointBasedSalvageMaxPartsFromMech = 3;
         public int StructurePointBasedSalvageMinPartsFromMech = 1;
-        public bool StructurePointBasedSalvageVanillaComponents = false;
         public string[] StructurePointBasedSalvageSalvageBlacklist = new string[] { };
         public float StructurePointBasedSalvageTurretComponentSalvageChance = 1;
         public bool LogLevelLog = false;

@@ -1,4 +1,5 @@
 ﻿using BattleTech;
+using BattleTech.UI;
 using Harmony;
 using HBS.Logging;
 using HBS.Util;
@@ -199,35 +200,17 @@ namespace BTSimpleMechAssembly
                 SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted by mod.json");
                 return;
             }
-            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageVanillaComponents)
+            try
             {
                 object[] args = new object[] { sal, d, ComponentDamageLevel.Functional, false, s.Constants, s.NetworkRandom, true };
                 Traverse.Create(__instance).Method("AddMechComponentToSalvage", args).GetValue(args);
-                return;
             }
-
-            if (d.ComponentTags.Contains("BLACKLISTED"))
+            catch (Exception e)
             {
-                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted");
-                return;
+                SimpleMechAssembly_Main.Log.LogError("failed to add mech component");
+                SimpleMechAssembly_Main.Log.LogException(e);
+                GenericPopupBuilder.Create("SMA add component error", "please report").AddButton("ok", null, true, null).Render();
             }
-            SalvageDef salvageDef = new SalvageDef();
-            salvageDef.MechComponentDef = d;
-            salvageDef.Description = new DescriptionDef(d.Description);
-            salvageDef.RewardID = __instance.GenerateRewardUID();
-            salvageDef.Type = SalvageDef.SalvageType.COMPONENT;
-            salvageDef.ComponentType = d.ComponentType;
-            salvageDef.Damaged = false;
-            salvageDef.Weight = s.Constants.Salvage.DefaultComponentWeight;
-            salvageDef.Count = 1;
-            object[] arg = new object[] { salvageDef };
-            if (Traverse.Create(__instance).Method("IsSalvageInContent", arg).GetValue<bool>(arg))
-            {
-                sal.Add(salvageDef);
-                //Traverse.Create(__instance).Method("AddToFinalSalvage", arg).GetValue(arg);
-            }
-            else
-                SimpleMechAssembly_Main.Log.LogError("failed to add upgrade");
         }
 
         public static bool IsPlayerMech(MechDef m, SimGameState s)
