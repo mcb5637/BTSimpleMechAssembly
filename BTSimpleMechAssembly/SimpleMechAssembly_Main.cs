@@ -25,7 +25,12 @@ namespace BTSimpleMechAssembly
             {
                 if (has.ContainsKey(d.Description.Id))
                     continue;
-                p += s.GetItemCount(d.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
+                int v = s.GetItemCount(d.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
+                if (v < 0)
+                {
+                    Log.LogError($"warning: mechpart inventory count at {v} for {d.Description.Id}");
+                }
+                p += v;
                 has.Add(d.Description.Id, true);
             }
             return p;
@@ -393,6 +398,11 @@ namespace BTSimpleMechAssembly
                 removing -= min - (curr - removing);
             if (removing < 0)
                 removing = 0;
+            if (removing > curr)
+            {
+                removing = curr;
+                Log.LogError($"warning: tried to remove more parts than in storage (st: {curr}, req: {required}, min: {min}");
+            }
             // the string variant of removeitem is private...
             //string stat = string.Format("{0}.{1}.{2}", "Item", "MECHPART", d.Description.Id);
             object[] args = new object[] { d.Description.Id, "MECHPART", false };
