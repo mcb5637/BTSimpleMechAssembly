@@ -27,8 +27,10 @@
     "CrossAssemblyExcludedMechs": [ "mechdef_mad_cat_timber_wolf-PRYDE" ],
     /*set to a string to enable omni mode for them (on ready you can choose which variant you want to ready, provided you know the variant)*/
     "OmniMechTag": "chassis_omni",
-    /*do fresh assembled mechs need to be readied before use? does not apply to selling/storing*/
+    /*do fresh assembled mechs need to be readied before use? does not apply to selling/storing, if flatCost > 0 the techpoint cost (duration) for readying is flatCost + perComponentCost * numOfNonFixedComponents*/
     "AssembledMechsNeedReadying": true,
+    "AssembledMechsReadyingFlatCost": -1,
+    "AssembledMechsReadyingPerNonFixedComponentCost": 0,
     /*modified salvage, based on structure points left (high priority is CT, head is no priority, rest low)*/
     "StructurePointBasedSalvageActive": true,
     "StructurePointBasedSalvageLowPriorityFactor": 1,

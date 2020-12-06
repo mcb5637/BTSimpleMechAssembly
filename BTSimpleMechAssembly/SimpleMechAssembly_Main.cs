@@ -268,10 +268,15 @@ namespace BTSimpleMechAssembly
 
         public static void ReadyMech(SimGameState s, MechDef d, int baySlot)
         {
+            int mechReadyTime = s.Constants.Story.MechReadyTime;
+            if (Settings.AssembledMechsReadyingFlatCost > 0)
+            {
+                mechReadyTime = Settings.AssembledMechsReadyingFlatCost + Settings.AssembledMechsReadyingPerNonFixedComponentCost * d.Inventory.Where((a) => !a.IsFixed).Count();
+            }
             WorkOrderEntry_ReadyMech workOrderEntry_ReadyMech = new WorkOrderEntry_ReadyMech(string.Format("ReadyMech-{0}", d.GUID), string.Format("Readying 'Mech - {0}", new object[]
                 {
                     d.Chassis.Description.Name
-                }), s.Constants.Story.MechReadyTime, baySlot, d, string.Format(s.Constants.Story.MechReadiedWorkOrderCompletedText, new object[]
+                }), mechReadyTime, baySlot, d, string.Format(s.Constants.Story.MechReadiedWorkOrderCompletedText, new object[]
                 {
                     d.Chassis.Description.Name
                 }));
