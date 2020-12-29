@@ -348,12 +348,12 @@ namespace BTSimpleMechAssembly
             }
             if (IsSellingAllowed(s))
             {
-                int cost = GetMechSellCost(s, d);
+                int cost = GetMechSellCost(s, toAdd);
                 pop.Body += $"\n\nDarius: We could also sell it for {SimGameState.GetCBillString(cost)}, although Yang would certanly not like it.";
                 pop.AddButton("sell it", delegate
                 {
                     s.AddFunds(cost, "Store", true, true);
-                    Log.Log("sold");
+                    Log.Log("sold for " + cost);
                     s.CompanyStats.ModifyStat<int>("Mission", 0, "COMPANY_MechsAdded", StatCollection.StatOperation.Int_Add, 1, -1, true);
                     onClose?.Invoke();
                 }, true, null);
@@ -432,11 +432,13 @@ namespace BTSimpleMechAssembly
 
         public static int GetMechSellCost(SimGameState s, MechDef m)
         {
-            int c = m.Description.Cost;
+            int c = m.Chassis.Description.Cost;
             foreach (MechComponentRef r in m.Inventory)
             {
                 if (!r.IsFixed)
+                {
                     c += r.Def.Description.Cost;
+                }
             }
             c = Mathf.FloorToInt(c * s.Constants.Finances.ShopSellModifier);
             return c;
