@@ -152,20 +152,21 @@ namespace BTSimpleMechAssembly
             log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
             float fract = parts - (float) Math.Floor(parts);
             float rand = s.NetworkRandom.Float(0f, 1f);
+            MechDef toSalvage = GetSalvageRedirect(s, u.mech);
             if (parts < minparts)
             {
                 log.Log("below min parts, getting min parts instead");
-                AddMechPartSalvage(__instance, u.mech, s, minparts, ___finalPotentialSalvage);
+                AddMechPartSalvage(__instance, toSalvage, s, minparts, ___finalPotentialSalvage);
             }
             else if (fract > rand)
             {
                 log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1 ({fract}>{rand})");
-                AddMechPartSalvage(__instance, u.mech, s, (int) Math.Ceiling(parts), ___finalPotentialSalvage);
+                AddMechPartSalvage(__instance, toSalvage, s, (int) Math.Ceiling(parts), ___finalPotentialSalvage);
             }
             else
             {
                 log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
-                AddMechPartSalvage(__instance, u.mech, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
+                AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
             }
 
             foreach (MechComponentRef r in u.mech.Inventory)
@@ -216,6 +217,29 @@ namespace BTSimpleMechAssembly
         public static bool IsPlayerMech(MechDef m, SimGameState s)
         {
             return s.ActiveMechs.Values.Select((a) => a.GUID).Contains(m.GUID);
+        }
+
+        public static MechDef GetSalvageRedirect(SimGameState s, MechDef m)
+        {
+            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMechPartSalvageRedirect.TryGetValue(m.Description.Id, out string red))
+            {
+                if (s.DataManager.MechDefs.TryGet(red, out MechDef n) && n != null)
+                {
+                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{red}");
+                    return n;
+                }
+            }
+            string c = m.MechTags.FirstOrDefault((x) => x.StartsWith("mech_MechPartSalvageRedirect_"));
+            if (c != null)
+            {
+                c = c.Replace("mech_MechPartSalvageRedirect_", "");
+                if (s.DataManager.MechDefs.TryGet(c, out MechDef n) && n != null)
+                {
+                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{c}");
+                    return n;
+                }
+            }
+            return m;
         }
     }
 }

@@ -11,8 +11,13 @@
 
   "ConflictsWith": [ "AdjustedMechAssembly", "AdjustedMechAssemblyCC", "AdjustedMechSalvage", "CustomSalvage", "SalvageOperations" ],
 
-  /*use chassis tags to further define crossassembly: "chassis_ExcludeCrossAssembly" to exclude it,
-  or chassis_CrossAssemblyAllowedWith_X where X is a VariantName or UIName to allow 2 specific mechs to crossassemble (technically only required in one of the mechs, but best put it into both to make it clear from viewing the chassisdefs)*/
+  /*
+  use chassis tags to further define crossassembly: "chassis_ExcludeCrossAssembly" to exclude it,
+  or "chassis_CrossAssemblyAllowedWith_X" where X is a VariantName or UIName to allow 2 specific mechs to crossassemble (technically only required in one of the mechs, but best put it into both to make it clear from viewing the chassisdefs).
+  use mech tags to further define salvage: "mech_MechPartSalvageRedirect_X" where X is a mechdef id,
+  creates mechpart salvage of that mech (ignoring original mech blackisted status, but not the new mechs blacklisted status),
+  does not change MechComponents (weapons/heatsinks...), these are generated from their old mech.
+  */
   "Settings": {
     /*set to null for no upgrade required*/
     "CrossAssemblyUpgradeRequired": "argoUpgrade_mechBay_machineShop",
@@ -39,6 +44,28 @@
     "StructurePointBasedSalvageMinPartsFromMech": 1,
     "StructurePointBasedSalvageSalvageBlacklist": [ "Gear_General_Robinson_TG120_Drive_Train", "Gear_Cockpit_Tacticon_B2000_Battle_Computer" ],
     /*turret components can be salvaged with this probability, set to 0 to disable*/
-    "StructurePointBasedSalvageTurretComponentSalvageChance": 0.25
+    "StructurePointBasedSalvageTurretComponentSalvageChance": 0.25,
+    /*redirect mech part salvage generation, without adding mech tags: "old": "new"*/
+    "StructurePointBasedSalvageMechPartSalvageRedirect": {
+      /*campagn*/
+      "mechdef_kingcrab_KGC-V-0000": "mechdef_kingcrab_KGC-0000",
+
+      /*flashpoints*/
+      "mechdef_Catapult_fp_justinAllard": "mechdef_catapult_CPLT-C1",
+      "mechdef_Centurion_fp_justinAllard": "mechdef_centurion_CN9-A",
+      "mechdef_Dragon_fp_justinAllard": "mechdef_dragon_DRG-1N",
+      "mechdef_Griffin_fp_justinAllard": "mechdef_griffin_GRF-1N",
+      "mechdef_jagermech_JM6-S_fp_headhunting": "mechdef_jagermech_JM6-S",
+      "mechdef_thunderbolt_TDR-5SE_fp_headhunting": "mechdef_thunderbolt_TDR-5SE",
+      "mechdef_fp_morganKell_stalker_STK-3F": "mechdef_stalker_STK-3F",
+      "mechdef_warhammer_WHM-BW": "mechdef_warhammer_WHM-6R",
+      "mechdef_marauder_MAD-CM": "mechdef_marauder_MAD-3R",
+      "mechdef_annihilator_ANH-JH": "mechdef_annihilator_ANH-1A",
+      "mechdef_archer_ARC-LS": "mechdef_archer_ARC-2S",
+      "mechdef_marauder_MAD-BH": "mechdef_marauder_MAD-3R",
+      "mechdef_atlas_AS7-GG": "mechdef_atlas_AS7-D",
+      "mechdef_archer_ARC-XO": "mechdef_archer_ARC-2R",
+      "mechdef_rifleman_RFL-RIP": "mechdef_rifleman_RFL-3N"
+    }
   }
 }

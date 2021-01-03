@@ -24,6 +24,7 @@ namespace BTSimpleMechAssembly
         public int StructurePointBasedSalvageMinPartsFromMech = 1;
         public string[] StructurePointBasedSalvageSalvageBlacklist = new string[] { };
         public float StructurePointBasedSalvageTurretComponentSalvageChance = 1;
+        public Dictionary<string, string> StructurePointBasedSalvageMechPartSalvageRedirect = new Dictionary<string, string>();
         public bool LogLevelLog = false;
         public int AssembledMechsReadyingFlatCost = 1;
         public int AssembledMechsReadyingPerNonFixedComponentCost = 0;
