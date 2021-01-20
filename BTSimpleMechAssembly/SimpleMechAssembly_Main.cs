@@ -285,6 +285,7 @@ namespace BTSimpleMechAssembly
             s.RoomManager.AddWorkQueueEntry(workOrderEntry_ReadyMech);
             s.UpdateMechLabWorkQueue(false);
             AudioEventManager.PlayAudioEvent("audioeventdef_simgame_vo_barks", "workqueue_readymech", WwiseManager.GlobalAudioObject, null);
+            s.CompanyStats.ModifyStat("Mission", 0, "COMPANY_MechsAdded", StatCollection.StatOperation.Int_Add, 1, -1, true);
         }
 
         public static void QueryMechAssemblyPopup(SimGameState s, MechDef d, Action onClose = null)
@@ -320,12 +321,14 @@ namespace BTSimpleMechAssembly
 
         public static void PerformMechAssemblyStorePopup(SimGameState s, MechDef d, Action onClose)
         {
+            WwiseManager.PostEvent(AudioEventList_ui.ui_sim_popup_newChassis, WwiseManager.GlobalAudioObject, null, null);
             MechDef toAdd = PerformMechAssembly(s, d);
             int mechbay = s.GetFirstFreeMechBay();
             GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled", $"Yang: [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]] finished!\n{d.Chassis.YangsThoughts}\n\n");
             pop.AddButton("storage", delegate
             {
                 StoreMech(s, toAdd);
+                CallMessages(s, toAdd);
                 Log.Log("direct storage");
                 onClose?.Invoke();
             }, true, null);
@@ -339,9 +342,15 @@ namespace BTSimpleMechAssembly
                 pop.AddButton("ready it", delegate
                 {
                     if (Settings.AssembledMechsNeedReadying)
+                    {
                         ReadyMech(s, toAdd, mechbay);
+                        CallMessages(s, toAdd);
+                    }
                     else
+                    {
                         s.AddMech(mechbay, toAdd, true, false, false);
+                        CallMessages(s, toAdd);
+                    }
                     Log.Log("added to bay " + mechbay);
                     onClose?.Invoke();
                 }, true, null);
@@ -354,7 +363,8 @@ namespace BTSimpleMechAssembly
                 {
                     s.AddFunds(cost, "Store", true, true);
                     Log.Log("sold for " + cost);
-                    s.CompanyStats.ModifyStat<int>("Mission", 0, "COMPANY_MechsAdded", StatCollection.StatOperation.Int_Add, 1, -1, true);
+                    s.CompanyStats.ModifyStat("Mission", 0, "COMPANY_MechsAdded", StatCollection.StatOperation.Int_Add, 1, -1, true);
+                    CallMessages(s, toAdd);
                     onClose?.Invoke();
                 }, true, null);
             }
@@ -365,7 +375,13 @@ namespace BTSimpleMechAssembly
         private static void StoreMech(SimGameState s, MechDef d)
         {
             s.UnreadyMech(-1, d);
-            s.CompanyStats.ModifyStat<int>("Mission", 0, "COMPANY_MechsAdded", StatCollection.StatOperation.Int_Add, 1, -1, true);
+            s.CompanyStats.ModifyStat("Mission", 0, "COMPANY_MechsAdded", StatCollection.StatOperation.Int_Add, 1, -1, true);
+        }
+
+        private static void CallMessages(SimGameState s, MechDef d)
+        {
+            s.MessageCenter.PublishMessage(new SimGameMechAddedMessage(d, s.Constants.Story.DefaultMechPartMax, true));
+            s.MessageCenter.PublishMessage(new SimGameMechAddedMessage(d, 0, false));
         }
 
         public static MechDef PerformMechAssembly(SimGameState s, MechDef d)
