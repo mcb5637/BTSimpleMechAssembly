@@ -66,6 +66,8 @@
       "mechdef_atlas_AS7-GG": "mechdef_atlas_AS7-D",
       "mechdef_archer_ARC-XO": "mechdef_archer_ARC-2R",
       "mechdef_rifleman_RFL-RIP": "mechdef_rifleman_RFL-3N"
-    }
+    },
+    /*enable automatic assembly popup after gaining mech parts*/
+    "AutoQueryAssembly": true
   }
 }

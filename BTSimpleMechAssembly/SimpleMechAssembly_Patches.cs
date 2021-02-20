@@ -21,6 +21,9 @@ namespace BTSimpleMechAssembly
         {
             __instance.AddItemStat(id, "MECHPART", false);
 
+            if (!SimpleMechAssembly_Main.Settings.AutoQueryAssembly)
+                return false;
+
             if (SimGameState_ResolveCompleteContract.IsResolving != null) // save added mechs for later completion
             {
                 if (!SimGameState_ResolveCompleteContract.IsResolving.ContainsKey(id))
@@ -46,11 +49,17 @@ namespace BTSimpleMechAssembly
 
         public static void Prefix()
         {
+            if (!SimpleMechAssembly_Main.Settings.AutoQueryAssembly)
+                return;
+
             IsResolving = new Dictionary<string, int>();
         }
 
         public static void Postfix(SimGameState __instance)
         {
+            if (!SimpleMechAssembly_Main.Settings.AutoQueryAssembly)
+                return;
+
             List<string> VariantsDone = new List<string>();
             foreach (KeyValuePair<string, int> kv in IsResolving)
             {

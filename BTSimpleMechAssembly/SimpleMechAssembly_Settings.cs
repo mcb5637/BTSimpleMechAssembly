@@ -28,5 +28,6 @@ namespace BTSimpleMechAssembly
         public bool LogLevelLog = false;
         public int AssembledMechsReadyingFlatCost = 1;
         public int AssembledMechsReadyingPerNonFixedComponentCost = 0;
+        public bool AutoQueryAssembly = true;
     }
 }
