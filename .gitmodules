@@ -1,0 +1,3 @@
+[submodule "BTSimpleMechAssembly/AccessExtensionPatcher"]
+	path = BTSimpleMechAssembly/AccessExtensionPatcher
+	url = https://github.com/mcb5637/AccessExtensionPatcher.git
