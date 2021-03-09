@@ -179,16 +179,12 @@ namespace BTSimpleMechAssembly
                     return true;
                 }
             }
-            Traverse c = Traverse.Create(s);
-            object[] args = new object[] { d.Description.Id, "MECHPART" };
-            string id = c.Method("GetItemStatID", args).GetValue<string>(args);
+            string id = s.GetItemStatID(d.Description.Id, "MECHPART");
             if (s.CompanyStats.ContainsStatistic(id))
             {
                 return true;
             }
-            args[0] = d.Chassis.Description.Id;
-            args[1] = d.GetType();
-            id = c.Method("GetItemStatID", args).GetValue<string>(args);
+            id = s.GetItemStatID(d.Chassis.Description, d.GetType());
             if (s.CompanyStats.ContainsStatistic(id))
             {
                 return true;
@@ -425,13 +421,9 @@ namespace BTSimpleMechAssembly
                 Log.LogError($"warning: tried to remove more parts than in storage (st: {curr}, req: {required}, min: {min}");
             }
             // the string variant of removeitem is private...
-            //string stat = string.Format("{0}.{1}.{2}", "Item", "MECHPART", d.Description.Id);
-            object[] args = new object[] { d.Description.Id, "MECHPART", false };
-            Traverse method = Traverse.Create(s).Method("RemoveItemStat", args);
             for (int i = 0; i < removing; i++)
             {
-                //s.CompanyStats.ModifyStat("SimGameState", 0, stat, StatCollection.StatOperation.Int_Subtract, 1, -1, true);
-               method.GetValue(args);
+                s.RemoveItemStat(d.Description.Id, "MECHPART", false);
             }
             Log.LogDebug("using parts " + d.Description.Id + " " + removing);
             return removing;
@@ -471,7 +463,7 @@ namespace BTSimpleMechAssembly
                 type = SimGameInterruptManager.InterruptType.GenericPopup;
                 this.s = s;
                 this.d = d;
-                this.onClose = (onClose == null) ? NewClose : (onClose + NewClose);
+                this.onClose = (onClose == null) ? Close : (onClose + Close);
             }
 
             public override bool IsUnique()
@@ -493,11 +485,6 @@ namespace BTSimpleMechAssembly
             {
                 QueryMechAssemblyPopup(s, d, onClose);
             }
-
-            public void NewClose()
-            {
-                Traverse.Create(this).Method("Close").GetValue();
-            }
         }
 
         public class SimpleMechAssembly_InterruptManager_UnStorageOmniEntry : SimGameInterruptManager.Entry
@@ -511,7 +498,7 @@ namespace BTSimpleMechAssembly
                 type = SimGameInterruptManager.InterruptType.GenericPopup;
                 this.s = s;
                 this.d = d;
-                this.onClose = (onClose == null) ? NewClose : (onClose + NewClose);
+                this.onClose = (onClose == null) ? Close : (onClose + Close);
             }
 
             public override bool IsUnique()
@@ -532,11 +519,6 @@ namespace BTSimpleMechAssembly
             public override void Render()
             {
                 UnStorageOmniMechPopup(s, d, onClose);
-            }
-
-            public void NewClose()
-            {
-                Traverse.Create(this).Method("Close").GetValue();
             }
         }
     }

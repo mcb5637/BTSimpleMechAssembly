@@ -31,10 +31,9 @@ namespace BTSimpleMechAssembly
             }
             SimGameState s = __instance.BattleTechGame.Simulation;
             ___finalPotentialSalvage = new List<SalvageDef>();
-            Traverse trav = Traverse.Create(__instance);
-            trav.Property("SalvagedChassis").SetValue(new List<SalvageDef>());
-            trav.Property("LostMechs").SetValue(new List<MechDef>());
-            trav.Property("SalvageResults").SetValue(new List<SalvageDef>());
+            __instance.SetSalvagedChassis(new List<SalvageDef>());
+            __instance.SetLostMechs(new List<MechDef>());
+            __instance.SetSalvageResults(new List<SalvageDef>());
 
             foreach (UnitResult u in lostUnits)
             {
@@ -121,8 +120,8 @@ namespace BTSimpleMechAssembly
             if (salvagepotential > 0)
                 persalpot += s.Constants.Finances.ContractFloorSalvageBonus;
             mod = Mathf.Max(0f, schanc - mlos * lostUnits.Count);
-            Traverse.Create(__instance).Property("FinalSalvageCount").SetValue(Mathf.FloorToInt(persalpot * mod));
-            Traverse.Create(__instance).Property("FinalPrioritySalvageCount").SetValue(Math.Min(8, Mathf.FloorToInt(__instance.FinalSalvageCount * s.Constants.Salvage.PrioritySalvageModifier)));
+            __instance.SetFinalSalvageCount(Mathf.FloorToInt(persalpot * mod));
+            __instance.SetFinalPrioritySalvageCount(Math.Min(8, Mathf.FloorToInt(__instance.FinalSalvageCount * s.Constants.Salvage.PrioritySalvageModifier)));
 
         }
 
@@ -190,8 +189,7 @@ namespace BTSimpleMechAssembly
                 SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted by mod.json");
                 return;
             }
-            object[] arg = new object[] { s.Constants, d, num, sal };
-            Traverse.Create(__instance).Method("CreateAndAddMechPart", arg).GetValue(arg);
+            __instance.CreateAndAddMechPart(s.Constants, d, num, sal);
         }
 
         private static void AddUpgradeToSalvage(Contract __instance, MechComponentDef d, SimGameState s, List<SalvageDef> sal)
@@ -203,8 +201,7 @@ namespace BTSimpleMechAssembly
             }
             try
             {
-                object[] args = new object[] { sal, d, ComponentDamageLevel.Functional, false, s.Constants, s.NetworkRandom, true };
-                Traverse.Create(__instance).Method("AddMechComponentToSalvage", args).GetValue(args);
+                __instance.AddMechComponentToSalvage(sal, d, ComponentDamageLevel.Functional, false, s.Constants, s.NetworkRandom, true);
             }
             catch (Exception e)
             {

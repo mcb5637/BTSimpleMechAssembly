@@ -81,6 +81,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccessExtensionPatcher\AccessExtensionPatcher.cs" />
+    <Compile Include="AEPStatic.cs" />
     <Compile Include="SimpleMechAssembly_Init.cs" />
     <Compile Include="SimpleMechAssembly_Main.cs" />
     <Compile Include="SimpleMechAssembly_Patches.cs" />

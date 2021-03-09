@@ -1,4 +1,5 @@
-﻿using BattleTech;
+﻿using AccessExtension;
+using BattleTech;
 using BattleTech.UI;
 using Harmony;
 using HBS.Logging;
@@ -32,6 +33,7 @@ namespace BTSimpleMechAssembly
                 Logger.SetLoggerLevel("BTSimpleMechAssembly", LogLevel.Log);
             var harmony = HarmonyInstance.Create("com.github.mcb5637.BTSimpleMechAssembly");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
+            AccessExtensionPatcher.PatchAll(harmony, Assembly.GetExecutingAssembly());
             if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageActive)
                 harmony.Patch(typeof(Contract).GetMethod("GenerateSalvage", BindingFlags.NonPublic | BindingFlags.Instance),
                     null,
