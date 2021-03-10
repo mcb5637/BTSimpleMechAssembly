@@ -207,7 +207,7 @@ namespace BTSimpleMechAssembly
             {
                 SimpleMechAssembly_Main.Log.LogError("failed to add mech component");
                 SimpleMechAssembly_Main.Log.LogException(e);
-                GenericPopupBuilder.Create("SMA add component error", "please report").AddButton("ok", null, true, null).Render();
+                GenericPopupBuilder.Create("SMA add component error", "Please delete your .modtek folder (so everything gets regenerated next start).\nIf it still happens afterwards, please report.").AddButton("ok", null, true, null).Render();
             }
         }
 
