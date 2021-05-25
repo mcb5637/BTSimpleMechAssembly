@@ -165,6 +165,8 @@ namespace BTSimpleMechAssembly
 
         public static bool IsVariantKnown(SimGameState s, MechDef d)
         {
+            if (d.Chassis.ChassisTags.Contains("chassis_KnownOmniVariant"))
+                return true;
             foreach (KeyValuePair<int, MechDef> a in s.ActiveMechs)
             {
                 if (d.ChassisID == a.Value.ChassisID)
@@ -450,6 +452,20 @@ namespace BTSimpleMechAssembly
             }
             c = Mathf.FloorToInt(c * s.Constants.Finances.ShopSellModifier);
             return c;
+        }
+
+        public static string GetMechCountDescrString(SimGameState s, MechDef d)
+        {
+            int pieces = s.GetItemCount(d.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
+            int needed = s.Constants.Story.DefaultMechPartMax;
+            int varpieces = SimpleMechAssembly_Main.GetNumPartsForAssembly(s, d);
+            int owned = SimpleMechAssembly_Main.GetNumberOfMechsOwnedOfType(s, d);
+            string ownedorknown;
+            if (owned == 0 && Settings.OmniMechTag != null && d.Chassis.ChassisTags.Contains(Settings.OmniMechTag) && IsVariantKnown(s, d))
+                ownedorknown = "K";
+            else
+                ownedorknown = owned.ToString();
+            return $"{pieces}({varpieces})/{ownedorknown}({needed})";
         }
 
         public class SimpleMechAssembly_InterruptManager_AssembleMechEntry : SimGameInterruptManager.Entry

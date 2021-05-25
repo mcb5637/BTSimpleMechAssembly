@@ -150,11 +150,7 @@ namespace BTSimpleMechAssembly
     {
         public static void Postfix(ListElementController_SalvageMechPart_NotListView __instance, InventoryItemElement_NotListView theWidget, SimGameState ___simState)
         {
-            int pieces = ___simState.GetItemCount(__instance.mechDef.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
-            int needed = ___simState.Constants.Story.DefaultMechPartMax;
-            int varpieces = SimpleMechAssembly_Main.GetNumPartsForAssembly(___simState, __instance.mechDef);
-            int owned = SimpleMechAssembly_Main.GetNumberOfMechsOwnedOfType(___simState, __instance.mechDef);
-            theWidget.mechPartsNumbersText.SetText(string.Format("{0}({1})/{3}({2})", pieces, varpieces, owned, needed));
+            theWidget.mechPartsNumbersText.SetText(SimpleMechAssembly_Main.GetMechCountDescrString(___simState, __instance.mechDef));
         }
     }
 
@@ -165,11 +161,7 @@ namespace BTSimpleMechAssembly
         {
             if (theController.mechDef == null)
                 return;
-            int pieces = ___simState.GetItemCount(theController.mechDef.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
-            int needed = ___simState.Constants.Story.DefaultMechPartMax;
-            int varpieces = SimpleMechAssembly_Main.GetNumPartsForAssembly(___simState, theController.mechDef);
-            int owned = SimpleMechAssembly_Main.GetNumberOfMechsOwnedOfType(___simState, theController.mechDef);
-            ___MechPartCountText.SetText(string.Format("{0}({1})/{3}({2})", pieces, varpieces, owned, needed));
+            ___MechPartCountText.SetText(SimpleMechAssembly_Main.GetMechCountDescrString(___simState, theController.mechDef));
         }
     }
 

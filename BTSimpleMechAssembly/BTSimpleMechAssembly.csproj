@@ -90,4 +90,7 @@
     <Compile Include="SimpleMechAssembly_StructurePointBasedSalvage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "C:\goggames\BATTLETECH\Mods\BTSimpleMechAssembly\$(TargetName).dll"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
