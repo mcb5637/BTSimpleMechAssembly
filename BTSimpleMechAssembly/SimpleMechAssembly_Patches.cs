@@ -11,6 +11,8 @@ using BattleTech.UI.TMProWrapper;
 using BattleTech.Save.SaveGameStructure;
 using System.Reflection.Emit;
 using HBS;
+using BattleTech.Data;
+using UnityEngine.UI;
 
 namespace BTSimpleMechAssembly
 {
@@ -119,7 +121,7 @@ namespace BTSimpleMechAssembly
             }
             if (___selectedChassis.MechPartCount < ___selectedChassis.MechPartMax)
                 return true;
-            if (SimpleMechAssembly_Main.Settings.OmniMechTag == null || !___selectedChassis.ChassisTags.Contains(SimpleMechAssembly_Main.Settings.OmniMechTag))
+            if (!___selectedChassis.IsOmni())
                 return true;
             if (bay < 0)
                 return true;
@@ -209,6 +211,16 @@ namespace BTSimpleMechAssembly
                 yield return prevprev;
             if (prev != null)
                 yield return prev;
+        }
+
+        public static void Postfix(MechBayChassisUnitElement __instance, Image ___mechImage, ChassisDef chassisDef, DataManager dataManager, int partsCount, int partsMax, int chassisQuantity)
+        {
+            if (partsMax > 0)
+                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_parts;
+            else if (chassisDef.IsOmni())
+                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_omni;
+            else
+                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_mech;
         }
     }
 

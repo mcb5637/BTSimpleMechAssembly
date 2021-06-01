@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace BTSimpleMechAssembly
 {
-    class SimpleMechAssembly_Main
+    static class SimpleMechAssembly_Main
     {
         public static SimpleMechAssembly_Settings Settings;
         public static ILog Log;
@@ -125,7 +125,7 @@ namespace BTSimpleMechAssembly
 
         public static IEnumerable<MechDef> GetAllAssemblyVariants(SimGameState s, MechDef m)
         {
-            if (Settings.OmniMechTag != null && m.Chassis.ChassisTags.Contains(Settings.OmniMechTag))
+            if (m.Chassis.IsOmni())
             {
                 return GetAllOmniVariants(s, m);
             }
@@ -151,9 +151,7 @@ namespace BTSimpleMechAssembly
 
         public static IEnumerable<MechDef> GetAllOmniVariants(SimGameState s, MechDef m)
         {
-            if (Settings.OmniMechTag == null)
-                yield break;
-            if (!m.Chassis.ChassisTags.Contains(Settings.OmniMechTag)) // no omni, return empty list
+            if (!m.Chassis.IsOmni()) // no omni, return empty list
                 yield break;
             yield return m;
             foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
@@ -461,11 +459,16 @@ namespace BTSimpleMechAssembly
             int varpieces = SimpleMechAssembly_Main.GetNumPartsForAssembly(s, d);
             int owned = SimpleMechAssembly_Main.GetNumberOfMechsOwnedOfType(s, d);
             string ownedorknown;
-            if (owned == 0 && Settings.OmniMechTag != null && d.Chassis.ChassisTags.Contains(Settings.OmniMechTag) && IsVariantKnown(s, d))
+            if (owned == 0 && d.Chassis.IsOmni() && IsVariantKnown(s, d))
                 ownedorknown = "K";
             else
                 ownedorknown = owned.ToString();
             return $"{pieces}({varpieces})/{ownedorknown}({needed})";
+        }
+
+        public static bool IsOmni(this ChassisDef d)
+        {
+            return Settings.OmniMechTag != null && d.ChassisTags.Contains(Settings.OmniMechTag);
         }
 
         public class SimpleMechAssembly_InterruptManager_AssembleMechEntry : SimGameInterruptManager.Entry

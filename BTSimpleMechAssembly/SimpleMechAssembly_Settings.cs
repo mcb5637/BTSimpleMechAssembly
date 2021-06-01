@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace BTSimpleMechAssembly
 {
@@ -29,5 +31,22 @@ namespace BTSimpleMechAssembly
         public int AssembledMechsReadyingFlatCost = 1;
         public int AssembledMechsReadyingPerNonFixedComponentCost = 0;
         public bool AutoQueryAssembly = true;
+        public string StorageColorParts = "blue";
+        public string StorageColorMech = "yellow";
+        public string StorageColorOmni = "green";
+
+        [JsonIgnore]
+        internal Color storage_parts = Color.blue;
+        [JsonIgnore]
+        internal Color storage_mech = Color.yellow;
+        [JsonIgnore]
+        internal Color storage_omni = Color.green;
+
+        public void ParseColors()
+        {
+            ColorUtility.TryParseHtmlString(StorageColorParts, out storage_parts);
+            ColorUtility.TryParseHtmlString(StorageColorMech, out storage_mech);
+            ColorUtility.TryParseHtmlString(StorageColorOmni, out storage_omni);
+        }
     }
 }

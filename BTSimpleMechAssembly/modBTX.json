@@ -68,6 +68,10 @@
       "mechdef_rifleman_RFL-RIP": "mechdef_rifleman_RFL-3N"
     },
     /*enable automatic assembly popup after gaining mech parts*/
-    "AutoQueryAssembly": true
+    "AutoQueryAssembly": true,
+    /*colors used for mechbay storage, parts is always used first. usual html notation (name or hex code)*/
+    "StorageColorParts": "blue",
+    "StorageColorMech": "yellow",
+    "StorageColorOmni": "green"
   }
 }
