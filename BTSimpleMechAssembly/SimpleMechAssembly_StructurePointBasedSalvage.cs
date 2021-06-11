@@ -6,6 +6,7 @@ using HBS.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
@@ -149,7 +150,7 @@ namespace BTSimpleMechAssembly
             int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
             float parts = left * maxparts;
             log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
-            float fract = parts - (float) Math.Floor(parts);
+            float fract = parts - (float)Math.Floor(parts);
             float rand = s.NetworkRandom.Float(0f, 1f);
             MechDef toSalvage = GetSalvageRedirect(s, u.mech);
             if (parts < minparts)
@@ -160,7 +161,7 @@ namespace BTSimpleMechAssembly
             else if (fract > rand)
             {
                 log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1 ({fract}>{rand})");
-                AddMechPartSalvage(__instance, toSalvage, s, (int) Math.Ceiling(parts), ___finalPotentialSalvage);
+                AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
             }
             else
             {
@@ -184,9 +185,9 @@ namespace BTSimpleMechAssembly
 
         private static void AddMechPartSalvage(Contract __instance, MechDef d, SimGameState s, int num, List<SalvageDef> sal)
         {
-            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+            if (IsBlacklisted(d))
             {
-                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted by mod.json");
+                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted");
                 return;
             }
             __instance.CreateAndAddMechPart(s.Constants, d, num, sal);
@@ -194,9 +195,9 @@ namespace BTSimpleMechAssembly
 
         private static void AddUpgradeToSalvage(Contract __instance, MechComponentDef d, SimGameState s, List<SalvageDef> sal)
         {
-            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+            if (IsBlacklisted(d))
             {
-                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted by mod.json");
+                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted");
                 return;
             }
             try
@@ -237,6 +238,45 @@ namespace BTSimpleMechAssembly
                 }
             }
             return m;
+        }
+
+        public static bool IsBlacklisted(MechDef d)
+        {
+            if (!SimpleMechAssembly_Main.Settings.UseOnlyCCSalvageFlag)
+            {
+                if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+                    return true;
+                if (d.MechTags.Contains("BLACKLISTED") || d.Chassis.ChassisTags.Contains("BLACKLISTED"))
+                    return true;
+            }
+            return d.IsCCNoSalvage() || d.Chassis.IsCCNoSalvage();
+
+        }
+        public static bool IsBlacklisted(MechComponentDef d)
+        {
+            if (!SimpleMechAssembly_Main.Settings.UseOnlyCCSalvageFlag)
+            {
+                if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+                    return true;
+                if (d.ComponentTags.Contains("BLACKLISTED"))
+                    return true;
+            }
+            return d.IsCCNoSalvage();
+        }
+
+        public static IEnumerable<CodeInstruction> CheckSalvageTranspiler(IEnumerable<CodeInstruction> inst)
+        {
+            yield return new CodeInstruction(OpCodes.Ldarg_2);
+            yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "IsBlacklisted", new Type[] { typeof(MechComponentDef) }));
+            foreach (CodeInstruction c in inst.Skip(4))
+                yield return c;
+        }
+        public static IEnumerable<CodeInstruction> CheckMechSalvageTranspiler(IEnumerable<CodeInstruction> inst)
+        {
+            yield return new CodeInstruction(OpCodes.Ldarg_2);
+            yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "IsBlacklisted", new Type[] { typeof(MechDef) }));
+            foreach (CodeInstruction c in inst.Skip(10))
+                yield return c;
         }
     }
 }

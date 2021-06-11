@@ -34,6 +34,7 @@ namespace BTSimpleMechAssembly
         public string StorageColorParts = "blue";
         public string StorageColorMech = "yellow";
         public string StorageColorOmni = "green";
+        public bool UseOnlyCCSalvageFlag = false;
 
         [JsonIgnore]
         internal Color storage_parts = Color.blue;

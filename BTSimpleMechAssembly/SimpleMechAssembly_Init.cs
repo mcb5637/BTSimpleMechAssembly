@@ -36,10 +36,28 @@ namespace BTSimpleMechAssembly
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             AccessExtensionPatcher.PatchAll(harmony, Assembly.GetExecutingAssembly());
             if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageActive)
-                harmony.Patch(typeof(Contract).GetMethod("GenerateSalvage", BindingFlags.NonPublic | BindingFlags.Instance),
-                    null,
-                    new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Postfix")),
-                    new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Transpiler")));
+            {
+                try
+                {
+                    harmony.Patch(typeof(Contract).GetMethod("GenerateSalvage", BindingFlags.NonPublic | BindingFlags.Instance),
+                                null,
+                                new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Postfix")),
+                                new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Transpiler")));
+                    harmony.Patch(AccessTools.DeclaredMethod(typeof(Contract), "AddMechComponentToSalvage"), null, null,
+                        new HarmonyMethod(AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "CheckSalvageTranspiler")));
+                    harmony.Patch(AccessTools.DeclaredMethod(typeof(Contract), "CreateAndAddMechPart"), null, null,
+                        new HarmonyMethod(AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "CheckMechSalvageTranspiler")));
+                }
+                catch (Exception e)
+                {
+                    FileLog.Log(e.ToString());
+                }
+            }
+        }
+
+        public static void FinishedLoading()
+        {
+            CCIntegration.LoadDelegates();
         }
     }
 }

@@ -72,6 +72,8 @@
     /*colors used for mechbay storage, parts is always used first. usual html notation (name or hex code)*/
     "StorageColorParts": "blue",
     "StorageColorMech": "yellow",
-    "StorageColorOmni": "green"
+    "StorageColorOmni": "green",
+    /*use only the CC no_salvage flag for salvage calculation and ignore BLACKLISTED. everything is salvageable, if no CC is present*/
+    "UseOnlyCCSalvageFlag": false
   }
 }
