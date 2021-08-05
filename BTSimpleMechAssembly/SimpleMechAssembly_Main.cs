@@ -240,8 +240,8 @@ namespace BTSimpleMechAssembly
                 return;
             }
             IEnumerable<MechDef> mechs = GetAllOmniVariants(s, d);
-            string desc = "Yang: We know the following Omni variants. What should i ready this mech as?\n\n";
-            GenericPopupBuilder pop = GenericPopupBuilder.Create("Ready Mech?", desc);
+            string desc = "Yang: We know the following Omni variants. What should I ready this 'Mech as?\n\n";
+            GenericPopupBuilder pop = GenericPopupBuilder.Create("Ready 'Mech?", desc);
             pop.AddButton("nothing", onClose, true, null);
             foreach (MechDef m in mechs)
             {
@@ -292,8 +292,8 @@ namespace BTSimpleMechAssembly
                 return;
             }
             IEnumerable<MechDef> mechs = GetAllAssemblyVariants(s, d);
-            string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts for the following mech variants. What should i build?\n";
-            GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble Mech?", desc);
+            string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts for the following 'Mech variants. What should I build?\n";
+            GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble 'Mech?", desc);
             pop.AddButton("-", delegate
             {
                 onClose?.Invoke();
@@ -320,7 +320,7 @@ namespace BTSimpleMechAssembly
             WwiseManager.PostEvent(AudioEventList_ui.ui_sim_popup_newChassis, WwiseManager.GlobalAudioObject, null, null);
             MechDef toAdd = PerformMechAssembly(s, d);
             int mechbay = s.GetFirstFreeMechBay();
-            GenericPopupBuilder pop = GenericPopupBuilder.Create("Mech Assembled", $"Yang: [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]] finished!\n{d.Chassis.YangsThoughts}\n\n");
+            GenericPopupBuilder pop = GenericPopupBuilder.Create("'Mech Assembled", $"Yang: [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]] finished!\n{d.Chassis.YangsThoughts}\n\n");
             pop.AddButton("storage", delegate
             {
                 StoreMech(s, toAdd);
