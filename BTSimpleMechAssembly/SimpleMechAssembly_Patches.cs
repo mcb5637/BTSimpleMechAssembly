@@ -100,7 +100,7 @@ namespace BTSimpleMechAssembly
     {
         public static bool Prefix(MechBayChassisInfoWidget __instance, ChassisDef ___selectedChassis, MechBayPanel ___mechBay)
         {
-            if (___selectedChassis==null)
+            if (___selectedChassis == null)
                 return true;
             int bay = ___mechBay.Sim.GetFirstFreeMechBay();
             string id = ___selectedChassis.Description.Id.Replace("chassisdef", "mechdef");
@@ -110,22 +110,47 @@ namespace BTSimpleMechAssembly
                 int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(___mechBay.Sim, d);
                 if (p < ___mechBay.Sim.Constants.Story.DefaultMechPartMax)
                 {
-                    GenericPopupBuilder.Create("Mech Assembly", "Yang: I do not have enough parts to assemble a mech out of it.").AddButton("Cancel", null, true, null)
+                    GenericPopupBuilder.Create($"{d.GetMechOmniVehicle()} Assembly", $"Yang: I do not have enough parts to assemble a {d.GetMechOmniVehicle()} out of it.").AddButton("Cancel", null, true, null)
                         .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).Render();
                     return false;
                 }
-                ___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(___mechBay.Sim, d, delegate {
+                ___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(___mechBay.Sim, d, delegate
+                {
                     ___mechBay.RefreshData(false);
                 }), true);
                 return false;
             }
             if (___selectedChassis.MechPartCount < ___selectedChassis.MechPartMax)
                 return true;
+            if (___selectedChassis.IsVehicle())
+            {
+                bay = CUIntegration.GetFirstFreeMechBay(___mechBay.Sim, d);
+                if (bay < 0)
+                {
+                    GenericPopupBuilder.Create("Cannot Ready Vehicle", "There are no available slots in the Vehicle Bay. You must move an active Vehicle into storage before readying this chassis.")
+                        .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).Render();
+                }
+                else
+                {
+                    GenericPopupBuilder.Create("Ready Vehicle?", $"It will take {Mathf.CeilToInt(___mechBay.Sim.Constants.Story.MechReadyTime / (float)___mechBay.Sim.MechTechSkill)} day(s) to ready this Vehicle for combat.")
+                        .AddButton("Cancel", null, true, null).AddButton("Ready", delegate
+                        {
+                            if (___mechBay.Sim.ScrapInactiveMech(___selectedChassis.Description.Id, false))
+                            {
+                                SimpleMechAssembly_Main.ReadyMech(___mechBay.Sim, new MechDef(d, ___mechBay.Sim.GenerateSimGameUID(), true), bay, true);
+                                ___mechBay.RefreshData(false);
+                                ___mechBay.ViewBays();
+                            }
+                        }).AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).CancelOnEscape().Render();
+                }
+                return false;
+            }
             if (!___selectedChassis.IsOmni())
                 return true;
             if (bay < 0)
                 return true;
-            ___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_UnStorageOmniEntry(___mechBay.Sim, d, delegate {
+            ___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_UnStorageOmniEntry(___mechBay.Sim, d, delegate
+            {
                 ___mechBay.RefreshData(false);
             }));
             return false;

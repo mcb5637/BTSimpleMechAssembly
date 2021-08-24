@@ -74,6 +74,8 @@
     "StorageColorMech": "yellow",
     "StorageColorOmni": "green",
     /*use only the CC no_salvage flag for salvage calculation and ignore BLACKLISTED. everything is salvageable, if no CC is present*/
-    "UseOnlyCCSalvageFlag": false
+    "UseOnlyCCSalvageFlag": false,
+    /*set this to your CU fake vehicle chassis tag to enable salvage and assembly of vehicles. gets unset if no CU found*/
+    "FakeVehilceTag": "fake_vehicle_chassis"
   }
 }

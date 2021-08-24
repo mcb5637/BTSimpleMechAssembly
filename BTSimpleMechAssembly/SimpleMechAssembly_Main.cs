@@ -118,13 +118,18 @@ namespace BTSimpleMechAssembly
             return true;
         }
 
-        public static bool IsMechDefCustom(MechDef d)
+        public static bool AreVehicleMechsCompatible(MechDef a, MechDef b)
         {
-            return d.Description.Id.Contains("mechdef_CUSTOM_");
+            return false; // todo
         }
+
 
         public static IEnumerable<MechDef> GetAllAssemblyVariants(SimGameState s, MechDef m)
         {
+            if (m.IsVehicle())
+            {
+                return GetAllVehicleMechVariants(s, m);
+            }
             if (m.Chassis.IsOmni())
             {
                 return GetAllOmniVariants(s, m);
@@ -135,7 +140,6 @@ namespace BTSimpleMechAssembly
             }
             return new List<MechDef>() { m };
         }
-
         public static IEnumerable<MechDef> GetAllNonOmniVariants(SimGameState s, MechDef m)
         {
             yield return m;
@@ -143,7 +147,19 @@ namespace BTSimpleMechAssembly
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !IsMechDefCustom(kv.Value) && AreMechsCrossVariantCompartible(m, kv.Value))
+                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !kv.Value.IsMechDefCustom() && AreMechsCrossVariantCompartible(m, kv.Value))
+                        yield return kv.Value;
+                }
+            }
+        }
+        public static IEnumerable<MechDef> GetAllVehicleMechVariants(SimGameState s, MechDef m)
+        {
+            yield return m;
+            if (IsCrossAssemblyAllowed(s) && !Settings.CrossAssemblyExcludedMechs.Contains(m.Description.Id) && !m.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+            {
+                foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
+                {
+                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !kv.Value.IsMechDefCustom() && AreVehicleMechsCompatible(m, kv.Value))
                         yield return kv.Value;
                 }
             }
@@ -156,7 +172,7 @@ namespace BTSimpleMechAssembly
             yield return m;
             foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
             {
-                if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !IsMechDefCustom(kv.Value) && AreOmniMechsCompartible(m, kv.Value))
+                if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !kv.Value.IsMechDefCustom() && AreOmniMechsCompartible(m, kv.Value))
                     yield return kv.Value;
             }
         }
@@ -262,17 +278,15 @@ namespace BTSimpleMechAssembly
             pop.Render();
         }
 
-        public static void ReadyMech(SimGameState s, MechDef d, int baySlot)
+        public static void ReadyMech(SimGameState s, MechDef d, int baySlot, bool donotoverridetime=false)
         {
             int mechReadyTime = s.Constants.Story.MechReadyTime;
-            if (Settings.AssembledMechsReadyingFlatCost > 0)
+            if (Settings.AssembledMechsReadyingFlatCost > 0 && !donotoverridetime)
             {
                 mechReadyTime = Settings.AssembledMechsReadyingFlatCost + Settings.AssembledMechsReadyingPerNonFixedComponentCost * d.Inventory.Where((a) => !a.IsFixed).Count();
             }
-            WorkOrderEntry_ReadyMech workOrderEntry_ReadyMech = new WorkOrderEntry_ReadyMech(string.Format("ReadyMech-{0}", d.GUID), string.Format("Readying 'Mech - {0}", new object[]
-                {
-                    d.Chassis.Description.Name
-                }), mechReadyTime, baySlot, d, string.Format(s.Constants.Story.MechReadiedWorkOrderCompletedText, new object[]
+            WorkOrderEntry_ReadyMech workOrderEntry_ReadyMech = new WorkOrderEntry_ReadyMech(string.Format("ReadyMech-{0}", d.GUID), $"Readying {d.GetMechOmniVehicle()} - {d.Chassis.Description.Name}",
+                mechReadyTime, baySlot, d, string.Format(s.Constants.Story.MechReadiedWorkOrderCompletedText, new object[]
                 {
                     d.Chassis.Description.Name
                 }));
@@ -292,8 +306,8 @@ namespace BTSimpleMechAssembly
                 return;
             }
             IEnumerable<MechDef> mechs = GetAllAssemblyVariants(s, d);
-            string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts for the following 'Mech variants. What should I build?\n";
-            GenericPopupBuilder pop = GenericPopupBuilder.Create("Assemble 'Mech?", desc);
+            string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts for the following {d.GetMechOmniVehicle()} variants. What should I build?\n";
+            GenericPopupBuilder pop = GenericPopupBuilder.Create($"Assemble {d.GetMechOmniVehicle()}?", desc);
             pop.AddButton("-", delegate
             {
                 onClose?.Invoke();
@@ -319,8 +333,12 @@ namespace BTSimpleMechAssembly
         {
             WwiseManager.PostEvent(AudioEventList_ui.ui_sim_popup_newChassis, WwiseManager.GlobalAudioObject, null, null);
             MechDef toAdd = PerformMechAssembly(s, d);
-            int mechbay = s.GetFirstFreeMechBay();
-            GenericPopupBuilder pop = GenericPopupBuilder.Create("'Mech Assembled", $"Yang: [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]] finished!\n{d.Chassis.YangsThoughts}\n\n");
+            int mechbay;
+            if (toAdd.IsVehicle())
+                mechbay = CUIntegration.GetFirstFreeMechBay(s, d); // vehicle bay, +100 or something similar
+            else
+                mechbay = s.GetFirstFreeMechBay();
+            GenericPopupBuilder pop = GenericPopupBuilder.Create($"{d.GetMechOmniVehicle()} Assembled", $"Yang: [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]] finished!\n{d.Chassis.YangsThoughts}\n\n");
             pop.AddButton("storage", delegate
             {
                 StoreMech(s, toAdd);
@@ -330,7 +348,7 @@ namespace BTSimpleMechAssembly
             }, true, null);
             if (mechbay < 0) // no space - direct storage
             {
-                pop.Body += "We have no space for a new mech, so it goes into storage.";
+                pop.Body += $"We have no space for a new {d.GetMechOmniVehicle()}, so it goes into storage.";
             }
             else
             {
@@ -402,7 +420,7 @@ namespace BTSimpleMechAssembly
             }
             if (requiredParts > 0)
                 throw new InvalidOperationException("not enough parts! your parts are now lost!"); // should never happen, we checked before if we have enough
-            return new MechDef(d, s.GenerateSimGameUID(), s.Constants.Salvage.EquipMechOnSalvage);
+            return new MechDef(d, s.GenerateSimGameUID(), d.IsVehicle() || s.Constants.Salvage.EquipMechOnSalvage);
         }
 
         private static int MechAssemblyRemoveParts(SimGameState s, MechDef d, int required, int min)
@@ -464,11 +482,6 @@ namespace BTSimpleMechAssembly
             else
                 ownedorknown = owned.ToString();
             return $"{pieces}({varpieces})/{ownedorknown}({needed})";
-        }
-
-        public static bool IsOmni(this ChassisDef d)
-        {
-            return Settings.OmniMechTag != null && d.ChassisTags.Contains(Settings.OmniMechTag);
         }
 
         public class SimpleMechAssembly_InterruptManager_AssembleMechEntry : SimGameInterruptManager.Entry

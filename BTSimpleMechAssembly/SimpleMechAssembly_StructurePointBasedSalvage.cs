@@ -72,14 +72,9 @@ namespace BTSimpleMechAssembly
                 GenerateSalvageForMech(__instance, u, s, ___finalPotentialSalvage);
             }
 
-            foreach (VehicleDef d in enemyVehicles)
+            foreach (Vehicle v in __instance.BattleTechGame.Combat.AllEnemies.OfType<Vehicle>().Where(t => t.IsDead))
             {
-                log.Log($"generating salvage for vehicle {d.Chassis.Description.Name}");
-                foreach (VehicleComponentRef r in d.Inventory)
-                {
-                    log.Log($"added salvage {r.Def.Description.Id}");
-                    AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
-                }
+                GenerateSalvageForVehicle(__instance, v, s, ___finalPotentialSalvage);
             }
 
             if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance > 0)
@@ -166,7 +161,7 @@ namespace BTSimpleMechAssembly
             else
             {
                 log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
-                AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
+                AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Floor(parts), ___finalPotentialSalvage);
             }
 
             foreach (MechComponentRef r in u.mech.Inventory)
@@ -180,6 +175,43 @@ namespace BTSimpleMechAssembly
                         AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
                     }
                 }
+            }
+        }
+
+        private static void GenerateSalvageForVehicle(Contract __instance, Vehicle v, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
+        {
+            ILog log = SimpleMechAssembly_Main.Log;
+            log.Log($"generating salvage for vehicle {v.VehicleDef.Chassis.Description.Name} {v.VehicleDef.Description.Id}");
+            if (SimpleMechAssembly_Main.Settings.FakeVehilceTag != null && s.DataManager.MechDefs.TryGet(v.VehicleDef.Description.Id, out MechDef m) && m.IsVehicle())
+            {
+                float left = ((v.VehicleDef.Chassis.HasTurret ? v.TurretStructure : 0f) + v.LeftSideStructure + v.RightSideStructure + v.FrontStructure + v.RearStructure) / v.SummaryStructureMax;
+                int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
+                int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
+                float parts = left * maxparts;
+                log.Log($"calculated parts {parts}");
+                float fract = parts - (float)Math.Floor(parts);
+                float rand = s.NetworkRandom.Float(0f, 1f);
+                MechDef toSalvage = m;
+                if (parts < minparts)
+                {
+                    log.Log("below min parts, getting min parts instead");
+                    AddMechPartSalvage(__instance, toSalvage, s, minparts, ___finalPotentialSalvage);
+                }
+                else if (fract > rand)
+                {
+                    log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1 ({fract}>{rand})");
+                    AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
+                }
+                else
+                {
+                    log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
+                    AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Floor(parts), ___finalPotentialSalvage);
+                }
+            }
+            foreach (VehicleComponentRef r in v.VehicleDef.Inventory)
+            {
+                log.Log($"added salvage {r.Def.Description.Id} with dlev {r.DamageLevel}");
+                AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
             }
         }
 

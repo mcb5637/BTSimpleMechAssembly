@@ -58,6 +58,7 @@ namespace BTSimpleMechAssembly
         public static void FinishedLoading()
         {
             CCIntegration.LoadDelegates();
+            CUIntegration.LoadDelegates();
         }
     }
 }
