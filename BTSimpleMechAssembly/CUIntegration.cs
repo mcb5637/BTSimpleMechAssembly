@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BTSimpleMechAssembly
 {
-    class CUIntegration
+    static class CUIntegration
     {
         public static Func<SimGameState, MechDef, int> GetFirstFreeMechBay = (s, m) => -1;
 
@@ -34,6 +34,11 @@ namespace BTSimpleMechAssembly
             {
                 FileLog.Log(e.ToString());
             }
+        }
+
+        public static VehicleDef GetVehicleDefFromFakeVehicle(this MechDef a)
+        {
+            return a.DataManager.VehicleDefs.Get(a.Description.Id);
         }
     }
 }

@@ -120,7 +120,17 @@ namespace BTSimpleMechAssembly
 
         public static bool AreVehicleMechsCompatible(MechDef a, MechDef b)
         {
-            return false; // todo
+            if (Settings.CrossAssemblyExcludedMechs.Contains(a.Description.Id) && !a.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+                return false; // a excluded
+            if (Settings.CrossAssemblyExcludedMechs.Contains(b.Description.Id) && !b.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
+                return false; // b excluded
+            VehicleDef va = a.GetVehicleDefFromFakeVehicle();
+            VehicleDef vb = b.GetVehicleDefFromFakeVehicle();
+            if (va == null || vb == null)
+                return false;
+            string vara = va.Chassis.GetCCVAssemblyVariant();
+            string varb = vb.Chassis.GetCCVAssemblyVariant();
+            return vara != null && varb != null && vara.Equals(varb);
         }
 
 
@@ -159,7 +169,7 @@ namespace BTSimpleMechAssembly
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && !kv.Value.IsMechDefCustom() && AreVehicleMechsCompatible(m, kv.Value))
+                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom() && AreVehicleMechsCompatible(m, kv.Value))
                         yield return kv.Value;
                 }
             }
@@ -459,6 +469,8 @@ namespace BTSimpleMechAssembly
         public static int GetMechSellCost(SimGameState s, MechDef m)
         {
             int c = m.Chassis.Description.Cost;
+            if (m.IsVehicle())
+                return c;
             foreach (MechComponentRef r in m.Inventory)
             {
                 if (!r.IsFixed)
