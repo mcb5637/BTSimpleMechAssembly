@@ -18,8 +18,9 @@ namespace BTSimpleMechAssembly
         internal static Func<MechComponentDef, object> GetCCFlagsMCDef = (_) => null;
         internal static Func<object, bool> CCFlagsGetNotSalvageable = (_) => false;
         internal static Func<VehicleChassisDef, IVAssemblyVariant> GetCCVehicleAssemblyVariant = (_) => null;
+        internal static Func<ChassisDef, IAssemblyVariant> GetCCAssemblyVariant = (_) => null;
         private static Action<Type[]> RegisterCCTypes = null;
-        private static Type VAssemblyVariantType = null;
+        private static Type VAssemblyVariantType = null, AssemblyVariantType = null;
 
         public static void LoadDelegates()
         {
@@ -30,33 +31,39 @@ namespace BTSimpleMechAssembly
                     return;
 
                 // do reflection magic to get delegates to CustomComponents funcs
-                Type t = a.GetType("CustomComponents.Flags");
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechDefExtensions", "GetComponent", ref GetCCFlagsMechDef, null, (mi, _) => mi.MakeGenericMethod(t));
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.ChassisDefExtensions", "GetComponent", ref GetCCFlagsChassisDef, null, (mi, _) => mi.MakeGenericMethod(t));
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(t));
+                Type ccflags = a.GetType("CustomComponents.Flags");
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechDefExtensions", "GetComponent", ref GetCCFlagsMechDef, null, (mi, _) => mi.MakeGenericMethod(ccflags));
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.ChassisDefExtensions", "GetComponent", ref GetCCFlagsChassisDef, null, (mi, _) => mi.MakeGenericMethod(ccflags));
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(ccflags));
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types");
 
                 // do more magic to get no_salvage flag out of it
-                if (t != null)
+                if (ccflags != null)
                 {
-                    MethodInfo m = t.GetMethods().Where((i) => i.Name.Equals("get_NotSalvagable")).Single();
+                    MethodInfo m = ccflags.GetMethods().Where((i) => i.Name.Equals("get_NotSalvagable")).Single();
                     DynamicMethod dm = new DynamicMethod("get_NotSalvagable", typeof(bool), new Type[] { typeof(object) });
                     ILGenerator g = dm.GetILGenerator();
                     g.Emit(OpCodes.Ldarg_0);
-                    g.Emit(OpCodes.Castclass, t);
+                    g.Emit(OpCodes.Castclass, ccflags);
                     g.Emit(OpCodes.Call, m);
                     g.Emit(OpCodes.Ret);
                     CCFlagsGetNotSalvageable = (Func<object, bool>)dm.CreateDelegate(typeof(Func<object, bool>));
                 }
 
-                // do a lot more magic to register VAssemblyVariant
-                VAssemblyVariantType = AccessExtensionPatcher.GenerateType("VAssemblyVariant", a.GetType("CustomComponents.SimpleCustom`1").MakeGenericType(typeof(VehicleChassisDef)),
+                // do a lot more magic to register AssemblyVariant & VAssemblyVariant
+                ConstructorInfo custcomatctor = a.GetType("CustomComponents.CustomComponentAttribute").GetConstructor(new Type[] { typeof(string) });
+                Type simplecustom = a.GetType("CustomComponents.SimpleCustom`1");
+                AssemblyVariantType = AccessExtensionPatcher.GenerateType("AssemblyVariant", simplecustom.MakeGenericType(typeof(ChassisDef)),
+                    new Type[] { typeof(IAssemblyVariant) },
+                    new CustomAttributeBuilder[] { new CustomAttributeBuilder(custcomatctor, new object[] { "AssemblyVariant" }) });
+                VAssemblyVariantType = AccessExtensionPatcher.GenerateType("VAssemblyVariant", simplecustom.MakeGenericType(typeof(VehicleChassisDef)),
                     new Type[] { typeof(IVAssemblyVariant) },
-                    new CustomAttributeBuilder[] { new CustomAttributeBuilder(a.GetType("CustomComponents.CustomComponentAttribute").GetConstructor(new Type[] { typeof(string) }), new object[] { "VAssemblyVariant" }) });
+                    new CustomAttributeBuilder[] { new CustomAttributeBuilder(custcomatctor, new object[] { "VAssemblyVariant" }) });
 
-                RegisterCCTypes(new Type[] { VAssemblyVariantType });
+                RegisterCCTypes(new Type[] { AssemblyVariantType, VAssemblyVariantType });
 
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.VehicleExtentions", "GetComponent", ref GetCCVehicleAssemblyVariant, null, (mi, _) => mi.MakeGenericMethod(VAssemblyVariantType));
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.ChassisDefExtensions", "GetComponent", ref GetCCAssemblyVariant, null, (mi, _) => mi.MakeGenericMethod(AssemblyVariantType));
             }
             catch (Exception e)
             {
@@ -87,13 +94,25 @@ namespace BTSimpleMechAssembly
             return false;
         }
 
-        public static string GetCCVAssemblyVariant(this VehicleChassisDef d)
+        public static string GetVariant(this ChassisDef d)
         {
-            return GetCCVehicleAssemblyVariant(d)?.PrefabID;
+            if (d.IsVehicle())
+            {
+                VehicleChassisDef vd = d.GetVehicleChassisDefFromFakeVehicle();
+                if (vd == null)
+                    return d.Description.Id;
+                //FileLog.Log($"vehicle {d.Description.Id} -> {(GetCCVehicleAssemblyVariant(vd)?.PrefabID ?? d.Description.Id)}");
+                return GetCCVehicleAssemblyVariant(vd)?.PrefabID ?? d.Description.Id;
+            }
+            return GetCCAssemblyVariant(d)?.PrefabID ?? d.Description.UIName;
         }
     }
 
     interface IVAssemblyVariant
+    {
+        string PrefabID { get; set; }
+    }
+    interface IAssemblyVariant
     {
         string PrefabID { get; set; }
     }

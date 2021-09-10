@@ -42,12 +42,14 @@ namespace BTSimpleMechAssembly
                 return false; // a excluded
             if (Settings.CrossAssemblyExcludedMechs.Contains(b.Description.Id) && !b.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
                 return false; // b excluded
-            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.Description.UIName}")
+            string va = a.Chassis.GetVariant();
+            string vb = b.Chassis.GetVariant();
+            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{vb}")
                        || a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.VariantName}")
-                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.Description.UIName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{va}")
                        || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.VariantName}"))
                 return true; // tag enabled
-            if (string.IsNullOrEmpty(b.Chassis.Description.UIName) || !b.Chassis.Description.UIName.Equals(a.Chassis.Description.UIName))
+            if (string.IsNullOrEmpty(va) || !va.Equals(vb))
                 return false; // wrong or invalid variant
             if (a.Chassis.MovementCapDef == null)
             {
@@ -103,17 +105,19 @@ namespace BTSimpleMechAssembly
                 return false; // a excluded
             if (Settings.CrossAssemblyExcludedMechs.Contains(b.Description.Id) && !b.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
                 return false; // b excluded
-            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.Description.UIName}")
+            string va = a.Chassis.GetVariant();
+            string vb = b.Chassis.GetVariant();
+            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{vb}")
                        || a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.VariantName}")
-                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.Description.UIName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{va}")
                        || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.VariantName}"))
                 return true; // tag enabled
-            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.Description.UIName}")
+            if (a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{vb}")
                        || a.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{b.Chassis.VariantName}")
-                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.Description.UIName}")
+                       || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{va}")
                        || b.Chassis.ChassisTags.Contains($"chassis_CrossAssemblyAllowedWith_{a.Chassis.VariantName}"))
                 return true; // tag enabled
-            if (string.IsNullOrEmpty(b.Chassis.Description.UIName) || !b.Chassis.Description.UIName.Equals(a.Chassis.Description.UIName))
+            if (string.IsNullOrEmpty(va) || !va.Equals(vb))
                 return false; // wrong or invalid variant
             return true;
         }
@@ -124,13 +128,9 @@ namespace BTSimpleMechAssembly
                 return false; // a excluded
             if (Settings.CrossAssemblyExcludedMechs.Contains(b.Description.Id) && !b.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
                 return false; // b excluded
-            VehicleDef va = a.GetVehicleDefFromFakeVehicle();
-            VehicleDef vb = b.GetVehicleDefFromFakeVehicle();
-            if (va == null || vb == null)
-                return false;
-            string vara = va.Chassis.GetCCVAssemblyVariant();
-            string varb = vb.Chassis.GetCCVAssemblyVariant();
-            return vara != null && varb != null && vara.Equals(varb);
+            string va = a.Chassis.GetVariant();
+            string vb = b.Chassis.GetVariant();
+            return va != null && vb != null && va.Equals(vb);
         }
 
 
@@ -164,12 +164,13 @@ namespace BTSimpleMechAssembly
         }
         public static IEnumerable<MechDef> GetAllVehicleMechVariants(SimGameState s, MechDef m)
         {
+            //FileLog.Log($"getting vehicle variants for {m.Description.Id}");
             yield return m;
             if (IsCrossAssemblyAllowed(s) && !Settings.CrossAssemblyExcludedMechs.Contains(m.Description.Id) && !m.Chassis.ChassisTags.Contains("chassis_ExcludeCrossAssembly"))
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.VariantName.Equals(kv.Value.Chassis.VariantName) && kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom() && AreVehicleMechsCompatible(m, kv.Value))
+                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom() && AreVehicleMechsCompatible(m, kv.Value))
                         yield return kv.Value;
                 }
             }
@@ -326,13 +327,16 @@ namespace BTSimpleMechAssembly
             {
                 MechDef var = m; // new var to keep it for lambda
                 int count = s.GetItemCount(var.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
+                int com = GetNumberOfMechsOwnedOfType(s, m);
                 if (count <= 0 && !CheckOmniKnown(s, d, m))
+                {
+                    pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] (unavailable, {count} Parts/{com} Complete)\n";
                     continue;
+                }
                 pop.AddButton(string.Format("{0}", var.Chassis.VariantName), delegate
                 {
                     PerformMechAssemblyStorePopup(s, var, onClose);
                 }, true, null);
-                int com = GetNumberOfMechsOwnedOfType(s, m);
                 pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete)\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);

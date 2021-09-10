@@ -36,6 +36,7 @@ namespace BTSimpleMechAssembly
         public string StorageColorOmni = "green";
         public bool UseOnlyCCSalvageFlag = false;
         public string FakeVehilceTag = null;
+        public bool ShowAllVariantsInPopup = false;
 
         [JsonIgnore]
         internal Color storage_parts = Color.blue;
