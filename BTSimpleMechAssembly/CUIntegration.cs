@@ -19,9 +19,7 @@ namespace BTSimpleMechAssembly
         {
             try
             {
-                Assembly a = AccessExtensionPatcher.GetLoadedAssemblybyName("CustomUnits");
-
-                if (!AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomUnits.SimGameState_AddMech", "GetFirstFreeMechBay", ref GetFirstFreeMechBay))
+                if (!AccessExtensionPatcher.GetDelegateFromAssembly("CustomUnits", "CustomUnits.SimGameState_AddMech", "GetFirstFreeMechBay", ref GetFirstFreeMechBay, null, null, SimpleMechAssembly_Main.Log.Log))
                 {
                     if (SimpleMechAssembly_Main.Settings.FakeVehilceTag != null)
                     {

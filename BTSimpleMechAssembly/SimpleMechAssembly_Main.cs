@@ -171,7 +171,10 @@ namespace BTSimpleMechAssembly
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
                     if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom() && AreVehicleMechsCompatible(m, kv.Value))
+                    {
+                        //FileLog.Log($"variant found {kv.Value.Description.Id}");
                         yield return kv.Value;
+                    }
                 }
             }
         }
