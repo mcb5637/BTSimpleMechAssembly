@@ -31,26 +31,45 @@ namespace BTSimpleMechAssembly
         public int AssembledMechsReadyingFlatCost = 1;
         public int AssembledMechsReadyingPerNonFixedComponentCost = 0;
         public bool AutoQueryAssembly = true;
-        public string StorageColorParts = "blue";
-        public string StorageColorMech = "yellow";
-        public string StorageColorOmni = "green";
+        public string StorageColorParts
+        {
+            set => ColorUtility.TryParseHtmlString(value, out storage_parts);
+            get => ColorUtility.ToHtmlStringRGB(storage_parts);
+        }
+        public string StorageColorMech
+        {
+            set => ColorUtility.TryParseHtmlString(value, out storage_mech);
+            get => ColorUtility.ToHtmlStringRGB(storage_mech);
+        }
+        public string StorageColorOmni
+        {
+            set => ColorUtility.TryParseHtmlString(value, out storage_omni);
+            get => ColorUtility.ToHtmlStringRGB(storage_omni);
+        }
+        public string StorageColorVehicle
+        {
+            set => ColorUtility.TryParseHtmlString(value, out storage_vehicle);
+            get => ColorUtility.ToHtmlStringRGB(storage_vehicle);
+        }
+        public string StorageColorVehiclePart
+        {
+            set => ColorUtility.TryParseHtmlString(value, out storage_vehiclepart);
+            get => ColorUtility.ToHtmlStringRGB(storage_vehiclepart);
+        }
         public bool UseOnlyCCSalvageFlag = false;
         public bool UseOnlyCCAssemblyOptions = false;
         public string FakeVehilceTag = null;
         public bool ShowAllVariantsInPopup = false;
 
         [JsonIgnore]
-        internal Color storage_parts = Color.blue;
+        internal Color storage_parts = Color.white;
         [JsonIgnore]
-        internal Color storage_mech = Color.yellow;
+        internal Color storage_mech = Color.white;
         [JsonIgnore]
-        internal Color storage_omni = Color.green;
-
-        public void ParseColors()
-        {
-            ColorUtility.TryParseHtmlString(StorageColorParts, out storage_parts);
-            ColorUtility.TryParseHtmlString(StorageColorMech, out storage_mech);
-            ColorUtility.TryParseHtmlString(StorageColorOmni, out storage_omni);
-        }
+        internal Color storage_omni = Color.white;
+        [JsonIgnore]
+        internal Color storage_vehicle = Color.white;
+        [JsonIgnore]
+        internal Color storage_vehiclepart = Color.white;
     }
 }

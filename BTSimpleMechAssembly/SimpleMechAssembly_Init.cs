@@ -31,7 +31,6 @@ namespace BTSimpleMechAssembly
             }
             if (SimpleMechAssembly_Main.Settings.LogLevelLog)
                 Logger.SetLoggerLevel("BTSimpleMechAssembly", LogLevel.Log);
-            SimpleMechAssembly_Main.Settings.ParseColors();
             var harmony = HarmonyInstance.Create("com.github.mcb5637.BTSimpleMechAssembly");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             AccessExtensionPatcher.PatchAll(harmony, Assembly.GetExecutingAssembly());

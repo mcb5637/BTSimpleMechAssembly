@@ -241,7 +241,14 @@ namespace BTSimpleMechAssembly
         public static void Postfix(MechBayChassisUnitElement __instance, Image ___mechImage, ChassisDef chassisDef, DataManager dataManager, int partsCount, int partsMax, int chassisQuantity)
         {
             if (partsMax > 0)
-                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_parts;
+            {
+                if (chassisDef.IsVehicle())
+                    ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_vehiclepart;
+                else
+                    ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_parts;
+            }
+            else if (chassisDef.IsVehicle())
+                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_vehicle;
             else if (chassisDef.IsOmni())
                 ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_omni;
             else
