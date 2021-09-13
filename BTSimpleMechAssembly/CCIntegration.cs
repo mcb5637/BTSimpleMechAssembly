@@ -125,9 +125,13 @@ namespace BTSimpleMechAssembly
     interface IVAssemblyVariant
     {
         string PrefabID { get; set; }
+        bool Exclude { get; set; }
     }
     interface IAssemblyVariant
     {
         string PrefabID { get; set; }
+        bool Exclude { get; set; }
+        string[] AssemblyAllowedWith { get; set; }
+        bool KnownOmniVariant { get; set; }
     }
 }

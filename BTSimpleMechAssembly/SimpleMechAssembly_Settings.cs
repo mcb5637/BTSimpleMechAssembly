@@ -35,6 +35,7 @@ namespace BTSimpleMechAssembly
         public string StorageColorMech = "yellow";
         public string StorageColorOmni = "green";
         public bool UseOnlyCCSalvageFlag = false;
+        public bool UseOnlyCCAssemblyOptions = false;
         public string FakeVehilceTag = null;
         public bool ShowAllVariantsInPopup = false;
 
