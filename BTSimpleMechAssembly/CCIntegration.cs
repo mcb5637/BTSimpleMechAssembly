@@ -19,6 +19,8 @@ namespace BTSimpleMechAssembly
         internal static Func<object, bool> CCFlagsGetNotSalvageable = (_) => false;
         internal static Func<VehicleChassisDef, IVAssemblyVariant> GetCCVehicleAssemblyVariant = (_) => null;
         internal static Func<ChassisDef, IAssemblyVariant> GetCCAssemblyVariant = (_) => null;
+        internal static Func<MechComponentDef, object> GetCCLootable = (_) => null;
+        internal static Func<object, string> CCLootableGetItem = (_) => null;
         private static Action<Type[]> RegisterCCTypes = (_) => { };
         private static Type VAssemblyVariantType = null, AssemblyVariantType = null;
 
@@ -36,23 +38,20 @@ namespace BTSimpleMechAssembly
                 SimpleMechAssembly_Main.Log.Log("loading CustomComponents...");
                 // do reflection magic to get delegates to CustomComponents funcs
                 Type ccflags = a.GetType("CustomComponents.Flags");
+                Type cclootable = a.GetType("CustomComponents.LootableDefault");
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechDefExtensions", "GetComponent", ref GetCCFlagsMechDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.ChassisDefExtensions", "GetComponent", ref GetCCFlagsChassisDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCLootable, null, (mi, _) => mi.MakeGenericMethod(cclootable), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types", null, SimpleMechAssembly_Main.Log.Log);
 
                 // do more magic to get no_salvage flag out of it
                 if (ccflags != null)
                 {
-                    SimpleMechAssembly_Main.Log.Log("generating CCFalgs.GetNotSalvageable");
+                    SimpleMechAssembly_Main.Log.Log("generating CCFlags.GetNotSalvageable");
                     MethodInfo m = ccflags.GetMethods().Where((i) => i.Name.Equals("get_NotSalvagable")).Single();
-                    DynamicMethod dm = new DynamicMethod("get_NotSalvagable", typeof(bool), new Type[] { typeof(object) });
-                    ILGenerator g = dm.GetILGenerator();
-                    g.Emit(OpCodes.Ldarg_0);
-                    g.Emit(OpCodes.Castclass, ccflags);
-                    g.Emit(OpCodes.Call, m);
-                    g.Emit(OpCodes.Ret);
-                    CCFlagsGetNotSalvageable = (Func<object, bool>)dm.CreateDelegate(typeof(Func<object, bool>));
+                    CCFlagsGetNotSalvageable = AccessExtensionPatcher.GenerateCastAndCall<Func<object, bool>>(m);
+                    CCLootableGetItem = AccessExtensionPatcher.GenerateCastAndCall<Func<object, string>>(cclootable.GetProperty("ItemID").GetGetMethod());
                 }
 
                 // do a lot more magic to register AssemblyVariant & VAssemblyVariant
@@ -120,6 +119,14 @@ namespace BTSimpleMechAssembly
             }
             return GetCCAssemblyVariant(d)?.PrefabID ?? d.Description.UIName;
         }
+
+        public static string GetCCLootableItem(this MechComponentDef d)
+        {
+            object l = GetCCLootable(d);
+            if (l != null)
+                return CCLootableGetItem(l);
+            return null;
+        }
     }
 
     interface IVAssemblyVariant
@@ -133,5 +140,6 @@ namespace BTSimpleMechAssembly
         bool Exclude { get; set; }
         string[] AssemblyAllowedWith { get; set; }
         bool KnownOmniVariant { get; set; }
+        string Lootable { get; set; }
     }
 }

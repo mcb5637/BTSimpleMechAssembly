@@ -227,6 +227,13 @@ namespace BTSimpleMechAssembly
 
         private static void AddUpgradeToSalvage(Contract __instance, MechComponentDef d, SimGameState s, List<SalvageDef> sal)
         {
+            string lootable = d.GetCCLootableItem();
+            if (lootable != null)
+            {
+                MechComponentDef l = s.DataManager.GetComponentDefFromID(lootable);
+                if (l != null)
+                    d = l;
+            }
             if (IsBlacklisted(d))
             {
                 SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted");
@@ -251,23 +258,32 @@ namespace BTSimpleMechAssembly
 
         public static MechDef GetSalvageRedirect(SimGameState s, MechDef m)
         {
-            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMechPartSalvageRedirect.TryGetValue(m.Description.Id, out string red))
+            if (!SimpleMechAssembly_Main.Settings.UseOnlyCCAssemblyOptions)
             {
-                if (s.DataManager.MechDefs.TryGet(red, out MechDef n) && n != null)
+                if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMechPartSalvageRedirect.TryGetValue(m.Description.Id, out string red))
                 {
-                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{red}");
-                    return n;
+                    if (s.DataManager.MechDefs.TryGet(red, out MechDef n) && n != null)
+                    {
+                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{red}");
+                        return n;
+                    }
+                }
+                string c = m.MechTags.FirstOrDefault((x) => x.StartsWith("mech_MechPartSalvageRedirect_"));
+                if (c != null)
+                {
+                    c = c.Replace("mech_MechPartSalvageRedirect_", "");
+                    if (s.DataManager.MechDefs.TryGet(c, out MechDef n) && n != null)
+                    {
+                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{c}");
+                        return n;
+                    }
                 }
             }
-            string c = m.MechTags.FirstOrDefault((x) => x.StartsWith("mech_MechPartSalvageRedirect_"));
-            if (c != null)
+            IAssemblyVariant v = CCIntegration.GetCCAssemblyVariant(m.Chassis);
+            if (v != null && v.Lootable != null)
             {
-                c = c.Replace("mech_MechPartSalvageRedirect_", "");
-                if (s.DataManager.MechDefs.TryGet(c, out MechDef n) && n != null)
-                {
-                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{c}");
-                    return n;
-                }
+                if (s.DataManager.MechDefs.TryGet(v.Lootable, out MechDef o))
+                    return o;
             }
             return m;
         }

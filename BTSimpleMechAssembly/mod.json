@@ -73,9 +73,15 @@
     "StorageColorParts": "blue",
     "StorageColorMech": "yellow",
     "StorageColorOmni": "green",
+    "StorageColorVehicle": "red",
+    "StorageColorVehiclePart": "orange",
     /*use only the CC no_salvage flag for salvage calculation and ignore BLACKLISTED. everything is salvageable, if no CC is present*/
     "UseOnlyCCSalvageFlag": false,
+    /*use only CC variants for assembly and salvage redircet (performance option, but disables all tag checks)*/
+    "UseOnlyCCAssemblyOptions": false,
     /*set this to your CU fake vehicle chassis tag to enable salvage and assembly of vehicles. gets unset if no CU found*/
-    "FakeVehilceTag": "fake_vehicle_chassis"
+    "FakeVehilceTag": "fake_vehicle_chassis",
+    /*set to true if you want to show all possible variants in the assembly popup. useful for checking variant assembly*/
+    "ShowAllVariantsInPopup": false
   }
 }

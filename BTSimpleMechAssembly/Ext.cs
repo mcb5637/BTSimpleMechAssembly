@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BattleTech;
+using BattleTech.Data;
 using UnityEngine;
 
 namespace BTSimpleMechAssembly
@@ -68,6 +69,21 @@ namespace BTSimpleMechAssembly
             }
             c = Mathf.FloorToInt(c * s.Constants.Finances.ShopSellModifier);
             return c;
+        }
+
+        public static MechComponentDef GetComponentDefFromID(this DataManager s, string id)
+        {
+            if (s.AmmoBoxDefs.TryGet(id, out AmmunitionBoxDef adef))
+                return adef;
+            if (s.HeatSinkDefs.TryGet(id, out HeatSinkDef hdef))
+                return hdef;
+            if (s.JumpJetDefs.TryGet(id, out JumpJetDef jdef))
+                return jdef;
+            if (s.UpgradeDefs.TryGet(id, out UpgradeDef udef))
+                return udef;
+            if (s.WeaponDefs.TryGet(id, out WeaponDef wdef))
+                return wdef;
+            return null;
         }
     }
 }
