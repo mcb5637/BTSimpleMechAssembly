@@ -23,6 +23,7 @@ namespace BTSimpleMechAssembly
         internal static Func<object, string> CCLootableGetItem = (_) => null;
         private static Action<Type[]> RegisterCCTypes = (_) => { };
         private static Type VAssemblyVariantType = null, AssemblyVariantType = null;
+        internal static Func<MechDef, bool> MechDefIsDead = (_) => false;
 
         public static void LoadDelegates()
         {
@@ -44,6 +45,7 @@ namespace BTSimpleMechAssembly
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCLootable, null, (mi, _) => mi.MakeGenericMethod(cclootable), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types", null, SimpleMechAssembly_Main.Log.Log);
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Contract_GenerateSalvage", "IsDestroyed", ref MechDefIsDead, null, null, SimpleMechAssembly_Main.Log.Log);
 
                 // do more magic to get no_salvage flag out of it
                 if (ccflags != null)

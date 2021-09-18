@@ -64,7 +64,9 @@ namespace BTSimpleMechAssembly
 
             foreach (UnitResult u in enemyMechs)
             {
-                if (!(u.pilot.IsIncapacitated || u.pilot.HasEjected || u.mech.IsDestroyed || u.mech.Inventory.Any((x) => x.Def != null && x.Def.CriticalComponent && x.DamageLevel == ComponentDamageLevel.Destroyed)))
+                if (!(u.pilot.IsIncapacitated || u.pilot.HasEjected || u.mech.IsDestroyed
+                    || u.mech.Inventory.Any((x) => x.Def != null && x.Def.CriticalComponent && x.DamageLevel == ComponentDamageLevel.Destroyed)
+                    || CCIntegration.MechDefIsDead(u.mech)))
                 {
                     log.Log($"skipping salvage for mech {u.mech.Description.UIName} {u.mech.Chassis.VariantName}, cause its not dead");
                     continue;
