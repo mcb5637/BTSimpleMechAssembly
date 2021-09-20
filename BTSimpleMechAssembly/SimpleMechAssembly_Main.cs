@@ -383,16 +383,18 @@ namespace BTSimpleMechAssembly
                 MechDef var = m; // new var to keep it for lambda
                 int count = s.GetItemCount(var.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
                 int com = GetNumberOfMechsOwnedOfType(s, m);
+                int cost = m.GetMechSellCost(s);
                 if (count <= 0 && !CheckOmniKnown(s, d, m))
                 {
-                    pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] (unavailable, {count} Parts/{com} Complete)\n";
+                    if (Settings.ShowAllVariantsInPopup)
+                        pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] (-/{com} Complete) ({SimGameState.GetCBillString(cost)})\n";
                     continue;
                 }
                 pop.AddButton(string.Format("{0}", var.Chassis.VariantName), delegate
                 {
                     PerformMechAssemblyStorePopup(s, var, onClose);
                 }, true, null);
-                pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete)\n";
+                pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete) ({SimGameState.GetCBillString(cost)})\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
             pop.Render();

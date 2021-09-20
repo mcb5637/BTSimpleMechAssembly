@@ -70,11 +70,11 @@
     /*enable automatic assembly popup after gaining mech parts*/
     "AutoQueryAssembly": true,
     /*colors used for mechbay storage, parts is always used first. usual html notation (name or hex code)*/
-    "StorageColorParts": "blue",
-    "StorageColorMech": "yellow",
-    "StorageColorOmni": "green",
-    "StorageColorVehicle": "red",
-    "StorageColorVehiclePart": "orange",
+    "StorageColorParts": "#FF7F50",
+    "StorageColorMech": "#7FFF00",
+    "StorageColorOmni": "#7FFFD4",
+    "StorageColorVehicle": "#00BFFF",
+    "StorageColorVehiclePart": "#FF1493",
     /*use only the CC no_salvage flag for salvage calculation and ignore BLACKLISTED. everything is salvageable, if no CC is present*/
     "UseOnlyCCSalvageFlag": false,
     /*use only CC variants for assembly and salvage redircet (performance option, but disables all tag checks)*/
