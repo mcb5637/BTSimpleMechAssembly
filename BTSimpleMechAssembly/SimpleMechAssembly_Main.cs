@@ -423,7 +423,7 @@ namespace BTSimpleMechAssembly
             }
             else
             {
-                pop.Body += "Should i put it into storage or ready it for combat?";
+                pop.Body += "Should I put it into storage or ready it for combat?";
                 pop.AddButton("ready it", delegate
                 {
                     if (Settings.AssembledMechsNeedReadying)
