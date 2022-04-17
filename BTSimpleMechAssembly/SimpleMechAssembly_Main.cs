@@ -199,7 +199,8 @@ namespace BTSimpleMechAssembly
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom() && AreMechsCrossVariantCompartible(m, kv.Value))
+                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle()
+                        && !kv.Value.IsMechDefCustom() && kv.Value.IsMechDefMain() && AreMechsCrossVariantCompartible(m, kv.Value))
                         yield return kv.Value;
                 }
             }
@@ -212,7 +213,8 @@ namespace BTSimpleMechAssembly
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom() && AreVehicleMechsCompatible(m, kv.Value))
+                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && kv.Value.IsVehicle()
+                        && !kv.Value.IsMechDefCustom() && kv.Value.IsMechDefMain() && AreVehicleMechsCompatible(m, kv.Value))
                     {
                         //FileLog.Log($"variant found {kv.Value.Description.Id}");
                         yield return kv.Value;
@@ -229,7 +231,8 @@ namespace BTSimpleMechAssembly
                 yield break;
             foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
             {
-                if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom() && AreOmniMechsCompartible(m, kv.Value))
+                if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle()
+                    && !kv.Value.IsMechDefCustom() && kv.Value.IsMechDefMain() && AreOmniMechsCompartible(m, kv.Value))
                     yield return kv.Value;
             }
         }
@@ -372,7 +375,7 @@ namespace BTSimpleMechAssembly
                 return;
             }
             IEnumerable<MechDef> mechs = GetAllAssemblyVariants(s, d);
-            string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts for the following {d.GetMechOmniVehicle()} variants. What should I build?\n";
+            string desc = $"Yang: Concerning the [[DM.MechDefs[{d.Description.Id}],{d.Chassis.Description.UIName} {d.Chassis.VariantName}]]: {d.Chassis.YangsThoughts}\n\n We have Parts of the following {d.GetMechOmniVehicle()} variants. What should I build?\n";
             GenericPopupBuilder pop = GenericPopupBuilder.Create($"Assemble {d.GetMechOmniVehicle()}?", desc);
             pop.AddButton("-", delegate
             {
@@ -390,10 +393,13 @@ namespace BTSimpleMechAssembly
                         pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] (-/{com} Complete) ({SimGameState.GetCBillString(cost)})\n";
                     continue;
                 }
-                pop.AddButton(string.Format("{0}", var.Chassis.VariantName), delegate
+                if (GetNumPartsForAssembly(s, var) >= s.Constants.Story.DefaultMechPartMax)
                 {
-                    PerformMechAssemblyStorePopup(s, var, onClose);
-                }, true, null);
+                    pop.AddButton(string.Format("{0}", var.Chassis.VariantName), delegate
+                    {
+                        PerformMechAssemblyStorePopup(s, var, onClose);
+                    }, true, null);
+                }
                 pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete) ({SimGameState.GetCBillString(cost)})\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
