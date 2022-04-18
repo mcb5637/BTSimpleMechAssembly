@@ -266,7 +266,7 @@ namespace BTSimpleMechAssembly
                 {
                     if (s.DataManager.MechDefs.TryGet(red, out MechDef n) && n != null)
                     {
-                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{red}");
+                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (settings): {m.Description.Id}->{red}");
                         return n;
                     }
                 }
@@ -276,7 +276,7 @@ namespace BTSimpleMechAssembly
                     c = c.Replace("mech_MechPartSalvageRedirect_", "");
                     if (s.DataManager.MechDefs.TryGet(c, out MechDef n) && n != null)
                     {
-                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection: {m.Description.Id}->{c}");
+                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (tag): {m.Description.Id}->{c}");
                         return n;
                     }
                 }
@@ -285,7 +285,19 @@ namespace BTSimpleMechAssembly
             if (v != null && v.Lootable != null)
             {
                 if (s.DataManager.MechDefs.TryGet(v.Lootable, out MechDef o))
+                {
+                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (lootable): {m.Description.Id}->{v.Lootable}");
                     return o;
+                }
+            }
+            if (!SimpleMechAssembly_Main.Settings.AllowNonMainVariants && !m.IsMechDefMain())
+            {
+                MechDef ma = m.Chassis.GetMainMechDef(s.DataManager);
+                if (ma != null)
+                {
+                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (main): {m.Description.Id}->{ma.Description.Id}");
+                    return ma;
+                }
             }
             return m;
         }

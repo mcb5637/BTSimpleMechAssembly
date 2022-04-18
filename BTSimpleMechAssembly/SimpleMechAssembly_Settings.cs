@@ -60,6 +60,7 @@ namespace BTSimpleMechAssembly
         public bool UseOnlyCCAssemblyOptions = false;
         public string FakeVehilceTag = null;
         public bool ShowAllVariantsInPopup = false;
+        public bool AllowNonMainVariants = false;
 
         [JsonIgnore]
         internal Color storage_parts = Color.white;

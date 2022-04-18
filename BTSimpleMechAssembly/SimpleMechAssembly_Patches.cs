@@ -103,8 +103,7 @@ namespace BTSimpleMechAssembly
             if (___selectedChassis == null)
                 return true;
             int bay = ___mechBay.Sim.GetFirstFreeMechBay();
-            string id = ___selectedChassis.Description.Id.Replace("chassisdef", "mechdef");
-            MechDef d = ___mechBay.Sim.DataManager.MechDefs.Get(id);
+            MechDef d = ___selectedChassis.GetMainMechDef(___mechBay.Sim.DataManager);
             if (___selectedChassis.MechPartCount > 0) // this is actually a part that gets assembled
             {
                 int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(___mechBay.Sim, d);

@@ -199,8 +199,8 @@ namespace BTSimpleMechAssembly
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle()
-                        && !kv.Value.IsMechDefCustom() && kv.Value.IsMechDefMain() && AreMechsCrossVariantCompartible(m, kv.Value))
+                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom()
+                        && (Settings.AllowNonMainVariants || kv.Value.IsMechDefMain()) && AreMechsCrossVariantCompartible(m, kv.Value))
                         yield return kv.Value;
                 }
             }
@@ -213,8 +213,8 @@ namespace BTSimpleMechAssembly
             {
                 foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
                 {
-                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && kv.Value.IsVehicle()
-                        && !kv.Value.IsMechDefCustom() && kv.Value.IsMechDefMain() && AreVehicleMechsCompatible(m, kv.Value))
+                    if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom()
+                        && (Settings.AllowNonMainVariants || kv.Value.IsMechDefMain()) && AreVehicleMechsCompatible(m, kv.Value))
                     {
                         //FileLog.Log($"variant found {kv.Value.Description.Id}");
                         yield return kv.Value;
@@ -231,8 +231,8 @@ namespace BTSimpleMechAssembly
                 yield break;
             foreach (KeyValuePair<string, MechDef> kv in s.DataManager.MechDefs)
             {
-                if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle()
-                    && !kv.Value.IsMechDefCustom() && kv.Value.IsMechDefMain() && AreOmniMechsCompartible(m, kv.Value))
+                if (!m.Chassis.Description.Id.Equals(kv.Value.Chassis.Description.Id) && !kv.Value.IsVehicle() && !kv.Value.IsMechDefCustom()
+                        && (Settings.AllowNonMainVariants || kv.Value.IsMechDefMain()) && AreOmniMechsCompartible(m, kv.Value))
                     yield return kv.Value;
             }
         }
@@ -332,7 +332,11 @@ namespace BTSimpleMechAssembly
             {
                 MechDef var = m; // new var to keep it for lambda
                 if (!CheckOmniKnown(s, d, m))
+                {
+                    if (Settings.ShowAllVariantsInPopup)
+                        pop.Body += $"unknown: [[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]]\n";
                     continue;
+                }
                 pop.AddButton($"{var.Chassis.VariantName}", delegate
                 {
                     Log.Log("ready omni as: " + var.Description.Id);
@@ -341,7 +345,8 @@ namespace BTSimpleMechAssembly
                     onClose?.Invoke();
                 }, true, null);
                 int com = GetNumberOfMechsOwnedOfType(s, m);
-                pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({com} Complete)\n";
+                int cost = m.GetMechSellCost(s);
+                pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({com} Complete) ({SimGameState.GetCBillString(cost)})\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
             pop.Render();
@@ -390,7 +395,7 @@ namespace BTSimpleMechAssembly
                 if (count <= 0 && !CheckOmniKnown(s, d, m))
                 {
                     if (Settings.ShowAllVariantsInPopup)
-                        pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] (-/{com} Complete) ({SimGameState.GetCBillString(cost)})\n";
+                        pop.Body += $"no parts: [[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({com} Complete)\n";
                     continue;
                 }
                 if (GetNumPartsForAssembly(s, var) >= s.Constants.Story.DefaultMechPartMax)
@@ -534,7 +539,7 @@ namespace BTSimpleMechAssembly
                 ownedorknown = "K";
             else
                 ownedorknown = owned.ToString();
-            return $"{pieces}({varpieces})/{ownedorknown}({needed})";
+            return $"{pieces}({varpieces})/{needed}({ownedorknown})";
         }
 
         public class SimpleMechAssembly_InterruptManager_AssembleMechEntry : SimGameInterruptManager.Entry

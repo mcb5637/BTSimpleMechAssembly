@@ -47,6 +47,11 @@ namespace BTSimpleMechAssembly
             return d.Description.Id.Substring(8).Equals(d.Chassis.Description.Id.Substring(11));
         }
 
+        public static MechDef GetMainMechDef(this ChassisDef d, DataManager dm)
+        {
+            return dm.MechDefs.Get(d.Description.Id.Replace("chassisdef", "mechdef"));
+        }
+
         public static int CountMechInventory(this MechDef d, string it)
         {
             return d.Inventory.Count((i) => i.ComponentDefID.Equals(it));
