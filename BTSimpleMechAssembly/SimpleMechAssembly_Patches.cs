@@ -109,7 +109,7 @@ namespace BTSimpleMechAssembly
                 int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(___mechBay.Sim, d);
                 if (p < ___mechBay.Sim.Constants.Story.DefaultMechPartMax)
                 {
-                    GenericPopupBuilder.Create($"{d.GetMechOmniVehicle()} Assembly", $"Yang: I do not have enough parts to assemble a {d.GetMechOmniVehicle()} out of it.").AddButton("Cancel", null, true, null)
+                    GenericPopupBuilder.Create($"{d.GetMechOmniVehicle()} Assembly", SimpleMechAssembly_Main.GetAssembleNotEnoughPartsText(___mechBay.Sim, d)).AddButton("Cancel", null, true, null)
                         .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).Render();
                     return false;
                 }

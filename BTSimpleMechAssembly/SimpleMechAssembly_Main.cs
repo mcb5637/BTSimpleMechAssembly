@@ -352,6 +352,27 @@ namespace BTSimpleMechAssembly
             pop.Render();
         }
 
+        public static string GetAssembleNotEnoughPartsText(SimGameState s, MechDef d)
+        {
+            IEnumerable<MechDef> mechs = GetAllAssemblyVariants(s, d);
+            string desc = $"Yang: I do not have enough parts to assemble a {d.GetMechOmniVehicle()} out of it.";
+            if (!Settings.ShowAllVariantsInPopup)
+                return desc;
+            desc += "\nKeep your eyes open for the following Variants:\n";
+            foreach (MechDef m in mechs)
+            {
+                int count = s.GetItemCount(m.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
+                int com = GetNumberOfMechsOwnedOfType(s, m);
+                if (count <= 0 && !CheckOmniKnown(s, d, m))
+                {
+                    desc += $"no parts: [[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({com} Complete)\n";
+                    continue;
+                }
+                desc += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete)\n";
+            }
+            return desc;
+        }
+
         public static void ReadyMech(SimGameState s, MechDef d, int baySlot, bool donotoverridetime=false)
         {
             int mechReadyTime = s.Constants.Story.MechReadyTime;
