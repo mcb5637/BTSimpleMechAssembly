@@ -12,14 +12,24 @@ namespace BTSimpleMechAssembly
 {
     static class CUIntegration
     {
-        public static Func<SimGameState, MechDef, int> GetFirstFreeMechBay = (s, m) => -1;
+        private static Func<SimGameState, MechDef, int> GetFirstFreeMechBayD = (s, m) => -1;
+        private static Func<SimGameState, MechDef, int?, int> GetFirstFreeMechBayDNew = (s, m, d) => -1;
 
+        public static int GetFirstFreeMechBay(SimGameState s, MechDef m)
+        {
+            if (GetFirstFreeMechBayD != null)
+                return GetFirstFreeMechBayD(s, m);
+            if (GetFirstFreeMechBayDNew != null)
+                return GetFirstFreeMechBayDNew(s, m, null);
+            return s.GetFirstFreeMechBay();
+        }
 
         public static void LoadDelegates()
         {
             try
             {
-                if (!AccessExtensionPatcher.GetDelegateFromAssembly("CustomUnits", "CustomUnits.SimGameState_AddMech", "GetFirstFreeMechBay", ref GetFirstFreeMechBay, null, null, SimpleMechAssembly_Main.Log.Log))
+                if (!AccessExtensionPatcher.GetDelegateFromAssembly("CustomUnits", "CustomUnits.SimGameState_AddMech", "GetFirstFreeMechBay", ref GetFirstFreeMechBayD, (m) => m.GetParameters().Length == 2, null, SimpleMechAssembly_Main.Log.Log)
+                    && !AccessExtensionPatcher.GetDelegateFromAssembly("CustomUnits", "CustomUnits.SimGameState_AddMech", "GetFirstFreeMechBay", ref GetFirstFreeMechBayDNew, (m) => m.GetParameters().Length == 3 && m.GetParameters()[1].ParameterType == typeof(MechDef), null, SimpleMechAssembly_Main.Log.Log))
                 {
                     if (SimpleMechAssembly_Main.Settings.FakeVehilceTag != null)
                     {

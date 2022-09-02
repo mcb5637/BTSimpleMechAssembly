@@ -29,7 +29,7 @@ namespace BTSimpleMechAssembly
         {
             try
             {
-                Assembly a = AccessExtensionPatcher.GetLoadedAssemblybyName("CustomComponents");
+                Assembly a = AccessExtensionPatcher.GetLoadedAssemblyByName("CustomComponents");
                 if (a == null)
                 {
                     SimpleMechAssembly_Main.Log.Log("CustomComponents not found");
