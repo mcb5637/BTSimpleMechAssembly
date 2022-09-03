@@ -177,7 +177,7 @@ namespace BTSimpleMechAssembly
             if (u.mech.IsVehicle())
             {
                 log.Log("is actually a vehicle, getting vehicle parts instead");
-                VehicleDef v = u.mech.GetVehicle(s.DataManager);
+                VehicleDef v = u.mech.GetVehicleDefFromFakeVehicle();
                 if (v != null)
                 {
                     CreateVehicleInventorySalvage(__instance, v, s, ___finalPotentialSalvage, log);
@@ -207,7 +207,7 @@ namespace BTSimpleMechAssembly
             log.Log($"generating salvage for vehicle {v.VehicleDef.Chassis.Description.Name} {v.VehicleDef.Description.Id}");
             if (SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles)
             {
-                MechDef m = v.VehicleDef.GetFakeVehicle(s.DataManager);
+                MechDef m = v.VehicleDef.GetFakeVehicle();
                 if (m != null && m.IsVehicle())
                 {
                     float left = ((v.VehicleDef.Chassis.HasTurret ? v.TurretStructure : 0f) + v.LeftSideStructure + v.RightSideStructure + v.FrontStructure + v.RearStructure) / v.SummaryStructureMax;

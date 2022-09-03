@@ -53,5 +53,9 @@ namespace BTSimpleMechAssembly
         {
             return a.DataManager.VehicleChassisDefs.Get(a.Description.Id);
         }
+        public static MechDef GetFakeVehicle(this VehicleDef v)
+        {
+            return v.DataManager.MechDefs.Get(v.Description.Id);
+        }
     }
 }

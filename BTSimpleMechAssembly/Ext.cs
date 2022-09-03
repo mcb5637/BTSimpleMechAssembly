@@ -21,19 +21,6 @@ namespace BTSimpleMechAssembly
             return SimpleMechAssembly_Main.Settings.FakeVehilceTag != null && d.ChassisTags.Contains(SimpleMechAssembly_Main.Settings.FakeVehilceTag);
         }
 
-        public static VehicleDef GetVehicle(this MechDef d, DataManager m)
-        {
-            if (m.VehicleDefs.TryGet(d.Description.Id, out VehicleDef v))
-                return v;
-            return null;
-        }
-        public static MechDef GetFakeVehicle(this VehicleDef v, DataManager m)
-        {
-            if (m.MechDefs.TryGet(v.Description.Id, out MechDef d))
-                return d;
-            return null;
-        }
-
         public static bool IsOmni(this ChassisDef d)
         {
             return SimpleMechAssembly_Main.Settings.OmniMechTag != null && d.ChassisTags.Contains(SimpleMechAssembly_Main.Settings.OmniMechTag);
