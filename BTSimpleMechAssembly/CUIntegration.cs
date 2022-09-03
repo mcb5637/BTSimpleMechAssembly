@@ -31,10 +31,10 @@ namespace BTSimpleMechAssembly
                 if (!AccessExtensionPatcher.GetDelegateFromAssembly("CustomUnits", "CustomUnits.SimGameState_AddMech", "GetFirstFreeMechBay", ref GetFirstFreeMechBayD, (m) => m.GetParameters().Length == 2, null, SimpleMechAssembly_Main.Log.Log)
                     && !AccessExtensionPatcher.GetDelegateFromAssembly("CustomUnits", "CustomUnits.SimGameState_AddMech", "GetFirstFreeMechBay", ref GetFirstFreeMechBayDNew, (m) => m.GetParameters().Length == 3 && m.GetParameters()[1].ParameterType == typeof(MechDef), null, SimpleMechAssembly_Main.Log.Log))
                 {
-                    if (SimpleMechAssembly_Main.Settings.FakeVehilceTag != null)
+                    if (SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles)
                     {
-                        SimpleMechAssembly_Main.Log.LogWarning("warning: SMA FakeVehilceTag is set, but CustomUnits is missing. unsetting it now.");
-                        SimpleMechAssembly_Main.Settings.FakeVehilceTag = null;
+                        SimpleMechAssembly_Main.Log.LogWarning("warning: SMA SalvageAndAssembleVehicles is set, but CustomUnits is missing. unsetting it now.");
+                        SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles = false;
                     }
                 }
             }
@@ -42,6 +42,7 @@ namespace BTSimpleMechAssembly
             {
                 FileLog.Log(e.ToString());
             }
+            SimpleMechAssembly_Main.Log.Log($"FakeVehilceTag={SimpleMechAssembly_Main.Settings.FakeVehilceTag ?? "null"}, SalvageAndAssembleVehicles={SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles}");
         }
 
         public static VehicleDef GetVehicleDefFromFakeVehicle(this MechDef a)

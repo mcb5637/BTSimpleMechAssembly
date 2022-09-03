@@ -59,6 +59,7 @@ namespace BTSimpleMechAssembly
         public bool UseOnlyCCSalvageFlag = false;
         public bool UseOnlyCCAssemblyOptions = false;
         public string FakeVehilceTag = null;
+        public bool SalvageAndAssembleVehicles = false;
         public bool ShowAllVariantsInPopup = false;
         public bool AllowNonMainVariants = false;
 

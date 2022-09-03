@@ -126,74 +126,33 @@ namespace BTSimpleMechAssembly
         private static readonly ChassisLocations[] LP = new ChassisLocations[] { ChassisLocations.LeftArm, ChassisLocations.LeftLeg, ChassisLocations.LeftTorso, ChassisLocations.RightArm, ChassisLocations.RightLeg, ChassisLocations.RightTorso };
         private static readonly ChassisLocations[] HP = new ChassisLocations[] { ChassisLocations.CenterTorso };
 
+        // mechs and CU 2 vehicles
         private static void GenerateSalvageForMech(Contract __instance, UnitResult u, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
         {
             ILog log = SimpleMechAssembly_Main.Log;
             log.Log($"generating salvage for mech {u.mech.Chassis.Description.UIName} {u.mech.Chassis.VariantName}");
-            float maxstruct = 0;
-            float currstruct = 0;
-            foreach (ChassisLocations c in LP)
+            if (!u.mech.IsVehicle() || SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles)
             {
-                currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageLowPriorityFactor;
-                maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageLowPriorityFactor;
-            }
-            foreach (ChassisLocations c in HP)
-            {
-                currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor;
-                maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor;
-            }
-            float left = currstruct / maxstruct;
-            int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
-            int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
-            float parts = left * maxparts;
-            log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
-            float fract = parts - (float)Math.Floor(parts);
-            float rand = s.NetworkRandom.Float(0f, 1f);
-            MechDef toSalvage = GetSalvageRedirect(s, u.mech);
-            if (parts < minparts)
-            {
-                log.Log("below min parts, getting min parts instead");
-                AddMechPartSalvage(__instance, toSalvage, s, minparts, ___finalPotentialSalvage);
-            }
-            else if (fract > rand)
-            {
-                log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1 ({fract}>{rand})");
-                AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
-            }
-            else
-            {
-                log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
-                AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Floor(parts), ___finalPotentialSalvage);
-            }
-
-            foreach (MechComponentRef r in u.mech.Inventory)
-            {
-                if (r.DamageLevel != ComponentDamageLevel.Destroyed && (string.IsNullOrEmpty(s.Constants.Salvage.UniqueSalvageTag) || !r.Def.ComponentTags.Contains(s.Constants.Salvage.UniqueSalvageTag))
-                    && !r.IsFixed)
+                float maxstruct = 0;
+                float currstruct = 0;
+                foreach (ChassisLocations c in LP)
                 {
-                    if (u.mech.GetLocationLoadoutDef(r.MountedLocation).CurrentInternalStructure > 0f)
-                    {
-                        log.Log($"added salvage {r.Def.Description.Id} from nondestroyed loc");
-                        AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
-                    }
+                    currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageLowPriorityFactor;
+                    maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageLowPriorityFactor;
                 }
-            }
-        }
-
-        private static void GenerateSalvageForVehicle(Contract __instance, Vehicle v, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
-        {
-            ILog log = SimpleMechAssembly_Main.Log;
-            log.Log($"generating salvage for vehicle {v.VehicleDef.Chassis.Description.Name} {v.VehicleDef.Description.Id}");
-            if (SimpleMechAssembly_Main.Settings.FakeVehilceTag != null && s.DataManager.MechDefs.TryGet(v.VehicleDef.Description.Id, out MechDef m) && m.IsVehicle())
-            {
-                float left = ((v.VehicleDef.Chassis.HasTurret ? v.TurretStructure : 0f) + v.LeftSideStructure + v.RightSideStructure + v.FrontStructure + v.RearStructure) / v.SummaryStructureMax;
+                foreach (ChassisLocations c in HP)
+                {
+                    currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor;
+                    maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor;
+                }
+                float left = currstruct / maxstruct;
                 int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
                 int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
                 float parts = left * maxparts;
-                log.Log($"calculated parts {parts}");
+                log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
                 float fract = parts - (float)Math.Floor(parts);
                 float rand = s.NetworkRandom.Float(0f, 1f);
-                MechDef toSalvage = m;
+                MechDef toSalvage = GetSalvageRedirect(s, u.mech);
                 if (parts < minparts)
                 {
                     log.Log("below min parts, getting min parts instead");
@@ -208,9 +167,80 @@ namespace BTSimpleMechAssembly
                 {
                     log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
                     AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Floor(parts), ___finalPotentialSalvage);
+                } 
+            }
+            else
+            {
+                log.Log("is actually a vehicle, no parts generated");
+            }
+
+            if (u.mech.IsVehicle())
+            {
+                log.Log("is actually a vehicle, getting vehicle parts instead");
+                VehicleDef v = u.mech.GetVehicle(s.DataManager);
+                if (v != null)
+                {
+                    CreateVehicleInventorySalvage(__instance, v, s, ___finalPotentialSalvage, log);
                 }
             }
-            foreach (VehicleComponentRef r in v.VehicleDef.Inventory)
+            else
+            {
+                foreach (MechComponentRef r in u.mech.Inventory)
+                {
+                    if (r.DamageLevel != ComponentDamageLevel.Destroyed && (string.IsNullOrEmpty(s.Constants.Salvage.UniqueSalvageTag) || !r.Def.ComponentTags.Contains(s.Constants.Salvage.UniqueSalvageTag))
+                        && !r.IsFixed)
+                    {
+                        if (u.mech.GetLocationLoadoutDef(r.MountedLocation).CurrentInternalStructure > 0f)
+                        {
+                            log.Log($"added salvage {r.Def.Description.Id} from nondestroyed loc");
+                            AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
+                        }
+                    }
+                }
+            }
+        }
+
+        // CU 1 only
+        private static void GenerateSalvageForVehicle(Contract __instance, Vehicle v, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
+        {
+            ILog log = SimpleMechAssembly_Main.Log;
+            log.Log($"generating salvage for vehicle {v.VehicleDef.Chassis.Description.Name} {v.VehicleDef.Description.Id}");
+            if (SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles)
+            {
+                MechDef m = v.VehicleDef.GetFakeVehicle(s.DataManager);
+                if (m != null && m.IsVehicle())
+                {
+                    float left = ((v.VehicleDef.Chassis.HasTurret ? v.TurretStructure : 0f) + v.LeftSideStructure + v.RightSideStructure + v.FrontStructure + v.RearStructure) / v.SummaryStructureMax;
+                    int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
+                    int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
+                    float parts = left * maxparts;
+                    log.Log($"calculated parts {parts}");
+                    float fract = parts - (float)Math.Floor(parts);
+                    float rand = s.NetworkRandom.Float(0f, 1f);
+                    MechDef toSalvage = m;
+                    if (parts < minparts)
+                    {
+                        log.Log("below min parts, getting min parts instead");
+                        AddMechPartSalvage(__instance, toSalvage, s, minparts, ___finalPotentialSalvage);
+                    }
+                    else if (fract > rand)
+                    {
+                        log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1 ({fract}>{rand})");
+                        AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
+                    }
+                    else
+                    {
+                        log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
+                        AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Floor(parts), ___finalPotentialSalvage);
+                    }
+                }
+            }
+            CreateVehicleInventorySalvage(__instance, v.VehicleDef, s, ___finalPotentialSalvage, log);
+        }
+
+        private static void CreateVehicleInventorySalvage(Contract __instance, VehicleDef v, SimGameState s, List<SalvageDef> ___finalPotentialSalvage, ILog log)
+        {
+            foreach (VehicleComponentRef r in v.Inventory)
             {
                 log.Log($"added salvage {r.Def.Description.Id} with dlev {r.DamageLevel}");
                 AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
