@@ -2,7 +2,7 @@
   "Name": "BTSimpleMechAssembly",
   "Enabled": true,
 
-  "Version": "1.2.1.0",
+  "Version": "1.2.2.0",
   "Description": "",
   "Author": "mcb",
   "Website": "https://github.com/mcb5637/BTSimpleMechAssembly",
@@ -82,6 +82,7 @@
     /*set this to your CU fake vehicle chassis tag if CU is in your load order*/
     "FakeVehilceTag": "fake_vehicle_chassis",
     /*enable to salvage and assemble vehicles (requires CU)*/
+    "SalvageAndAssembleVehicles": false,
     /*set to true if you want to show all possible variants in the assembly popup. useful for checking variant assembly*/
     "ShowAllVariantsInPopup": false,
     /*allows salvaging and assembly of mechs whose id does not match the chassisdef id (excluding mechdef_ and chassidef_).

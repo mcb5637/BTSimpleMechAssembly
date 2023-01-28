@@ -12,8 +12,8 @@ namespace BTSimpleMechAssembly
 {
     static class CUIntegration
     {
-        private static Func<SimGameState, MechDef, int> GetFirstFreeMechBayD = (s, m) => -1;
-        private static Func<SimGameState, MechDef, int?, int> GetFirstFreeMechBayDNew = (s, m, d) => -1;
+        private static Func<SimGameState, MechDef, int> GetFirstFreeMechBayD = null;
+        private static Func<SimGameState, MechDef, int?, int> GetFirstFreeMechBayDNew = null;
 
         public static int GetFirstFreeMechBay(SimGameState s, MechDef m)
         {
