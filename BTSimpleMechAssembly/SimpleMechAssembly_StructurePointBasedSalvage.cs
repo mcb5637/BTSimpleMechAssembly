@@ -146,7 +146,7 @@ namespace BTSimpleMechAssembly
                     maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor;
                 }
                 float left = currstruct / maxstruct;
-                int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
+                int maxparts = GetMaxMechParts(s);
                 int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
                 float parts = left * maxparts;
                 log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
@@ -167,7 +167,7 @@ namespace BTSimpleMechAssembly
                 {
                     log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
                     AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Floor(parts), ___finalPotentialSalvage);
-                } 
+                }
             }
             else
             {
@@ -200,6 +200,22 @@ namespace BTSimpleMechAssembly
             }
         }
 
+        private static int GetMaxMechParts(SimGameState s)
+        {
+            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromCompanyTags)
+            {
+                string tag = s.CompanyTags.FirstOrDefault((t) => t.StartsWith("StructurePointBasedSalvageMaxParts_"));
+                if (tag != null)
+                {
+                    if (int.TryParse(tag.Replace("StructurePointBasedSalvageMaxParts_", ""), out int i))
+                    {
+                        return Math.Min(s.Constants.Story.DefaultMechPartMax, i);
+                    }
+                }
+            }
+            return Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
+        }
+
         // CU 1 only
         private static void GenerateSalvageForVehicle(Contract __instance, Vehicle v, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
         {
@@ -211,7 +227,7 @@ namespace BTSimpleMechAssembly
                 if (m != null && m.IsVehicle())
                 {
                     float left = ((v.VehicleDef.Chassis.HasTurret ? v.TurretStructure : 0f) + v.LeftSideStructure + v.RightSideStructure + v.FrontStructure + v.RearStructure) / v.SummaryStructureMax;
-                    int maxparts = Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
+                    int maxparts = GetMaxMechParts(s);
                     int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
                     float parts = left * maxparts;
                     log.Log($"calculated parts {parts}");
