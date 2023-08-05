@@ -94,6 +94,7 @@
     <Compile Include="CUIntegration.cs" />
     <Compile Include="Ext.cs" />
     <Compile Include="ListElementController_SalvageMechPart_NotListView_GetName.cs" />
+    <Compile Include="MAIntegration.cs" />
     <Compile Include="SimpleMechAssembly_Init.cs" />
     <Compile Include="SimpleMechAssembly_Main.cs" />
     <Compile Include="SimpleMechAssembly_Patches.cs" />

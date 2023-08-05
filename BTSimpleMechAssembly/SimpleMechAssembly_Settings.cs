@@ -63,6 +63,7 @@ namespace BTSimpleMechAssembly
         public bool SalvageAndAssembleVehicles = false;
         public bool ShowAllVariantsInPopup = false;
         public bool AllowNonMainVariants = false;
+        public bool MAIntegration_OverrideOnly = false;
 
         [JsonIgnore]
         internal Color storage_parts = Color.white;

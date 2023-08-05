@@ -122,6 +122,34 @@ namespace BTSimpleMechAssembly
             return GetCCAssemblyVariant(d)?.PrefabID ?? d.Description.UIName;
         }
 
+        public static string GetVariantOverride(this ChassisDef d)
+        {
+            if (d.IsVehicle())
+            {
+                VehicleChassisDef vd = d.GetVehicleChassisDefFromFakeVehicle();
+                if (vd == null)
+                    return d.Description.Id;
+                IVAssemblyVariant iVAssemblyVariant = GetCCVehicleAssemblyVariant(vd);
+                //FileLog.Log($"vehicle {d.Description.Id} -> {iVAssemblyVariant?.PrefabID ?? d.Description.Id} null:{iVAssemblyVariant==null}");
+                return iVAssemblyVariant?.PrefabID;
+            }
+            return GetCCAssemblyVariant(d)?.PrefabID;
+        }
+
+        public static string GetVariant(this VehicleChassisDef vd)
+        {
+            IVAssemblyVariant iVAssemblyVariant = GetCCVehicleAssemblyVariant(vd);
+            //FileLog.Log($"vehicle {d.Description.Id} -> {iVAssemblyVariant?.PrefabID ?? d.Description.Id} null:{iVAssemblyVariant==null}");
+            return iVAssemblyVariant?.PrefabID ?? vd.Description.Id;
+        }
+
+        public static string GetVariantOverride(this VehicleChassisDef vd)
+        {
+            IVAssemblyVariant iVAssemblyVariant = GetCCVehicleAssemblyVariant(vd);
+            //FileLog.Log($"vehicle {d.Description.Id} -> {iVAssemblyVariant?.PrefabID ?? d.Description.Id} null:{iVAssemblyVariant==null}");
+            return iVAssemblyVariant?.PrefabID;
+        }
+
         public static string GetCCLootableItem(this MechComponentDef d)
         {
             object l = GetCCLootable(d);

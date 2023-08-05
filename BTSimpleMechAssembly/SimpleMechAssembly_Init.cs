@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly: AssemblyVersion("1.2.2.0")]
+[assembly: AssemblyVersion("1.2.2.1")]
 
 namespace BTSimpleMechAssembly
 {
@@ -58,6 +58,7 @@ namespace BTSimpleMechAssembly
         {
             CCIntegration.LoadDelegates();
             CUIntegration.LoadDelegates();
+            MAIntegration.TryPatch(HarmonyInstance.Create("com.github.mcb5637.BTSimpleMechAssembly"));
         }
     }
 }
