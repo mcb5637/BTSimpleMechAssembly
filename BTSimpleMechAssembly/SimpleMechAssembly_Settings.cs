@@ -64,6 +64,7 @@ namespace BTSimpleMechAssembly
         public bool ShowAllVariantsInPopup = false;
         public bool AllowNonMainVariants = false;
         public bool MAIntegration_OverrideOnly = false;
+        public bool CUVehicle_CombatHudDisplayName = false;
 
         [JsonIgnore]
         internal Color storage_parts = Color.white;

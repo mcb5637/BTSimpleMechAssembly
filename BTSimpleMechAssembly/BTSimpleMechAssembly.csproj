@@ -92,6 +92,7 @@
     <Compile Include="AEPStatic.cs" />
     <Compile Include="CCIntegration.cs" />
     <Compile Include="CUIntegration.cs" />
+    <Compile Include="CUVehicle_Name.cs" />
     <Compile Include="Ext.cs" />
     <Compile Include="ListElementController_SalvageMechPart_NotListView_GetName.cs" />
     <Compile Include="MAIntegration.cs" />
