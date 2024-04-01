@@ -43,6 +43,8 @@
     "StructurePointBasedSalvageMaxPartsFromMech": 3,
     "StructurePointBasedSalvageMinPartsFromMech": 1,
     "StructurePointBasedSalvageSalvageBlacklist": [ "Gear_General_Robinson_TG120_Drive_Train", "Gear_Cockpit_Tacticon_B2000_Battle_Computer" ],
+    /*if true, looks for a company tag "StructurePointBasedSalvageMaxParts_X" where x is a int. StructurePointBasedSalvageMaxPartsFromMech gets replaced with X*/
+    "StructurePointBasedSalvageMaxPartsFromCompanyTags": false,
     /*turret components can be salvaged with this probability, set to 0 to disable*/
     "StructurePointBasedSalvageTurretComponentSalvageChance": 0.25,
     /*redirect mech part salvage generation, without adding mech tags: "old": "new"*/
@@ -90,6 +92,8 @@
     warning: if you store one of these, it will become one of the main variant.*/
     "AllowNonMainVariants": false,
     /*changes the combat hud vehicle name to vehicle.Description.UIName. requires CU.*/
-    "CUVehicle_CombatHudDisplayName": false
+    "CUVehicle_CombatHudDisplayName": false,
+    /*if true, only changes MechAffinity classification, if AssemblyVariant.PrefabID is present*/
+    "MAIntegration_OverrideOnly": false
   }
 }
