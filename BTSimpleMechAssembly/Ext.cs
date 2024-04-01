@@ -66,16 +66,17 @@ namespace BTSimpleMechAssembly
             return true;
         }
 
-        public static int GetMechSellCost(this MechDef m, SimGameState s)
+        public static int GetMechSellCost(this MechDef m, SimGameState s, bool stripped = false)
         {
             int c = m.Chassis.Description.Cost;
-            if (m.IsVehicle())
-                return c;
-            foreach (MechComponentRef r in m.Inventory)
+            if (!m.IsVehicle() && !stripped)
             {
-                if (!r.IsFixed)
+                foreach (MechComponentRef r in m.Inventory)
                 {
-                    c += r.Def.Description.Cost;
+                    if (!r.IsFixed)
+                    {
+                        c += r.Def.Description.Cost;
+                    }
                 }
             }
             c = Mathf.FloorToInt(c * s.Constants.Finances.ShopSellModifier);

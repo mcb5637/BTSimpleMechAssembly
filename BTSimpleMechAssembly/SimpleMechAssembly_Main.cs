@@ -345,7 +345,7 @@ namespace BTSimpleMechAssembly
                     onClose?.Invoke();
                 }, true, null);
                 int com = GetNumberOfMechsOwnedOfType(s, m);
-                int cost = m.GetMechSellCost(s);
+                int cost = m.GetMechSellCost(s, true);
                 pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({com} Complete) ({SimGameState.GetCBillString(cost)})\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
@@ -412,7 +412,7 @@ namespace BTSimpleMechAssembly
                 MechDef var = m; // new var to keep it for lambda
                 int count = s.GetItemCount(var.Description.Id, "MECHPART", SimGameState.ItemCountType.UNDAMAGED_ONLY);
                 int com = GetNumberOfMechsOwnedOfType(s, m);
-                int cost = m.GetMechSellCost(s);
+                int cost = m.GetMechSellCost(s, !s.Constants.Salvage.EquipMechOnSalvage);
                 if (count <= 0 && !CheckOmniKnown(s, d, m))
                 {
                     if (Settings.ShowAllVariantsInPopup)

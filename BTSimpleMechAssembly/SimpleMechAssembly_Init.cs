@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly: AssemblyVersion("1.2.2.1")]
+[assembly: AssemblyVersion("1.2.3.0")]
 
 namespace BTSimpleMechAssembly
 {
