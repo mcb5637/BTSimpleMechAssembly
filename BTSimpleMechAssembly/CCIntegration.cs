@@ -13,8 +13,6 @@ namespace BTSimpleMechAssembly
 {
     static class CCIntegration
     {
-        internal static Func<MechDef, object> GetCCFlagsMechDef = (_) => null;
-        internal static Func<ChassisDef, object> GetCCFlagsChassisDef = (_) => null;
         internal static Func<MechComponentDef, object> GetCCFlagsMCDef = (_) => null;
         internal static Func<object, bool> CCFlagsGetNotSalvageable = (_) => false;
         internal static Func<VehicleChassisDef, IVAssemblyVariant> GetCCVehicleAssemblyVariant = (_) => null;
@@ -40,8 +38,6 @@ namespace BTSimpleMechAssembly
                 // do reflection magic to get delegates to CustomComponents funcs
                 Type ccflags = a.GetType("CustomComponents.Flags");
                 Type cclootable = a.GetType("CustomComponents.LootableDefault");
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechDefExtensions", "GetComponent", ref GetCCFlagsMechDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.ChassisDefExtensions", "GetComponent", ref GetCCFlagsChassisDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCLootable, null, (mi, _) => mi.MakeGenericMethod(cclootable), SimpleMechAssembly_Main.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types", null, SimpleMechAssembly_Main.Log.Log);
@@ -85,20 +81,16 @@ namespace BTSimpleMechAssembly
             }
         }
 
-
         public static bool IsCCNoSalvage(this MechDef d)
         {
-            object f = GetCCFlagsMechDef(d);
-            if (f != null)
-                return CCFlagsGetNotSalvageable(f);
-            return false;
+            return d.Chassis.IsCCNoSalvage();
         }
         public static bool IsCCNoSalvage(this ChassisDef d)
         {
-            object f = GetCCFlagsChassisDef(d);
-            if (f != null)
-                return CCFlagsGetNotSalvageable(f);
-            return false;
+            IAssemblyVariant v = GetCCAssemblyVariant(d);
+            if (v == null)
+                return false;
+            return v.NoSalvage;
         }
         public static bool IsCCNoSalvage(this MechComponentDef d)
         {
@@ -171,5 +163,6 @@ namespace BTSimpleMechAssembly
         string[] AssemblyAllowedWith { get; set; }
         bool KnownOmniVariant { get; set; }
         string Lootable { get; set; }
+        bool NoSalvage { get; set; }
     }
 }

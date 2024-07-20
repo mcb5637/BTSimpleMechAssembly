@@ -357,7 +357,7 @@ namespace BTSimpleMechAssembly
                 if (d.MechTags.Contains("BLACKLISTED") || d.Chassis.ChassisTags.Contains("BLACKLISTED"))
                     return true;
             }
-            return d.IsCCNoSalvage() || d.Chassis.IsCCNoSalvage();
+            return d.IsCCNoSalvage();
 
         }
         public static bool IsBlacklisted(MechComponentDef d)
