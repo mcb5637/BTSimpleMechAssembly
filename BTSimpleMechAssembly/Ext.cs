@@ -18,12 +18,12 @@ namespace BTSimpleMechAssembly
         }
         public static bool IsVehicle(this ChassisDef d)
         {
-            return SimpleMechAssembly_Main.Settings.FakeVehilceTag != null && d.ChassisTags.Contains(SimpleMechAssembly_Main.Settings.FakeVehilceTag);
+            return Assembly.Settings.FakeVehilceTag != null && d.ChassisTags.Contains(Assembly.Settings.FakeVehilceTag);
         }
 
         public static bool IsOmni(this ChassisDef d)
         {
-            return SimpleMechAssembly_Main.Settings.OmniMechTag != null && d.ChassisTags.Contains(SimpleMechAssembly_Main.Settings.OmniMechTag);
+            return Assembly.Settings.OmniMechTag != null && d.ChassisTags.Contains(Assembly.Settings.OmniMechTag);
         }
 
         public static string GetMechOmniVehicle(this MechDef d)

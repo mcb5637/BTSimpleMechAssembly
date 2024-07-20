@@ -23,7 +23,7 @@ namespace BTSimpleMechAssembly
         {
             __instance.AddItemStat(id, "MECHPART", false);
 
-            if (!SimpleMechAssembly_Main.Settings.AutoQueryAssembly)
+            if (!Assembly.Settings.AutoQueryAssembly)
                 return false;
 
             if (SimGameState_ResolveCompleteContract.IsResolving != null) // save added mechs for later completion
@@ -35,9 +35,9 @@ namespace BTSimpleMechAssembly
             else // no contract -> direct assembly
             {
                 MechDef d = __instance.DataManager.MechDefs.Get(id);
-                int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(__instance, d);
+                int p = Assembly.GetNumPartsForAssembly(__instance, d);
                 if (p >= __instance.Constants.Story.DefaultMechPartMax)
-                    __instance.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(__instance, d, null), true);
+                    __instance.InterruptQueue.AddInterrupt(new Assembly.SimpleMechAssembly_InterruptManager_AssembleMechEntry(__instance, d, null), true);
             }
 
             return false; // completely replace
@@ -51,7 +51,7 @@ namespace BTSimpleMechAssembly
 
         public static void Prefix()
         {
-            if (!SimpleMechAssembly_Main.Settings.AutoQueryAssembly)
+            if (!Assembly.Settings.AutoQueryAssembly)
                 return;
 
             IsResolving = new Dictionary<string, int>();
@@ -59,7 +59,7 @@ namespace BTSimpleMechAssembly
 
         public static void Postfix(SimGameState __instance)
         {
-            if (!SimpleMechAssembly_Main.Settings.AutoQueryAssembly)
+            if (!Assembly.Settings.AutoQueryAssembly)
                 return;
 
             List<string> VariantsDone = new List<string>();
@@ -68,11 +68,11 @@ namespace BTSimpleMechAssembly
                 MechDef d = __instance.DataManager.MechDefs.Get(kv.Key);
                 if (VariantsDone.Contains(d.Description.Id))
                     continue;
-                int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(__instance, d);
+                int p = Assembly.GetNumPartsForAssembly(__instance, d);
                 if (p >= __instance.Constants.Story.DefaultMechPartMax)
                 {
-                    __instance.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(__instance, d, null), true);
-                    foreach (MechDef m in SimpleMechAssembly_Main.GetAllAssemblyVariants(__instance, d))
+                    __instance.InterruptQueue.AddInterrupt(new Assembly.SimpleMechAssembly_InterruptManager_AssembleMechEntry(__instance, d, null), true);
+                    foreach (MechDef m in Assembly.GetAllAssemblyVariants(__instance, d))
                         if (!VariantsDone.Contains(m.Description.Id))
                             VariantsDone.Add(m.Description.Id);
                 }
@@ -106,14 +106,14 @@ namespace BTSimpleMechAssembly
             MechDef d = ___selectedChassis.GetMainMechDef(___mechBay.Sim.DataManager);
             if (___selectedChassis.MechPartCount > 0) // this is actually a part that gets assembled
             {
-                int p = SimpleMechAssembly_Main.GetNumPartsForAssembly(___mechBay.Sim, d);
+                int p = Assembly.GetNumPartsForAssembly(___mechBay.Sim, d);
                 if (p < ___mechBay.Sim.Constants.Story.DefaultMechPartMax)
                 {
-                    GenericPopupBuilder.Create($"{d.GetMechOmniVehicle()} Assembly", SimpleMechAssembly_Main.GetAssembleNotEnoughPartsText(___mechBay.Sim, d)).AddButton("Cancel", null, true, null)
+                    GenericPopupBuilder.Create($"{d.GetMechOmniVehicle()} Assembly", Assembly.GetAssembleNotEnoughPartsText(___mechBay.Sim, d)).AddButton("Cancel", null, true, null)
                         .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true).Render();
                     return false;
                 }
-                ___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_AssembleMechEntry(___mechBay.Sim, d, delegate
+                ___mechBay.Sim.InterruptQueue.AddInterrupt(new Assembly.SimpleMechAssembly_InterruptManager_AssembleMechEntry(___mechBay.Sim, d, delegate
                 {
                     ___mechBay.RefreshData(false);
                 }), true);
@@ -136,7 +136,7 @@ namespace BTSimpleMechAssembly
                         {
                             if (___mechBay.Sim.ScrapInactiveMech(___selectedChassis.Description.Id, false))
                             {
-                                SimpleMechAssembly_Main.ReadyMech(___mechBay.Sim, new MechDef(d, ___mechBay.Sim.GenerateSimGameUID(), true), bay, true);
+                                Assembly.ReadyMech(___mechBay.Sim, new MechDef(d, ___mechBay.Sim.GenerateSimGameUID(), true), bay, true);
                                 ___mechBay.RefreshData(false);
                                 ___mechBay.ViewBays();
                             }
@@ -148,7 +148,7 @@ namespace BTSimpleMechAssembly
                 return true;
             if (bay < 0)
                 return true;
-            ___mechBay.Sim.InterruptQueue.AddInterrupt(new SimpleMechAssembly_Main.SimpleMechAssembly_InterruptManager_UnStorageOmniEntry(___mechBay.Sim, d, delegate
+            ___mechBay.Sim.InterruptQueue.AddInterrupt(new Assembly.SimpleMechAssembly_InterruptManager_UnStorageOmniEntry(___mechBay.Sim, d, delegate
             {
                 ___mechBay.RefreshData(false);
             }));
@@ -176,7 +176,7 @@ namespace BTSimpleMechAssembly
     {
         public static void Postfix(ListElementController_SalvageMechPart_NotListView __instance, InventoryItemElement_NotListView theWidget, SimGameState ___simState)
         {
-            theWidget.mechPartsNumbersText.SetText(SimpleMechAssembly_Main.GetMechCountDescrString(___simState, __instance.mechDef));
+            theWidget.mechPartsNumbersText.SetText(Assembly.GetMechCountDescrString(___simState, __instance.mechDef));
         }
     }
 
@@ -187,7 +187,7 @@ namespace BTSimpleMechAssembly
         {
             if (theController.mechDef == null)
                 return;
-            ___MechPartCountText.SetText(SimpleMechAssembly_Main.GetMechCountDescrString(___simState, theController.mechDef));
+            ___MechPartCountText.SetText(Assembly.GetMechCountDescrString(___simState, theController.mechDef));
         }
     }
 
@@ -242,16 +242,16 @@ namespace BTSimpleMechAssembly
             if (partsMax > 0)
             {
                 if (chassisDef.IsVehicle())
-                    ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_vehiclepart;
+                    ___mechImage.color = Assembly.Settings.storage_vehiclepart;
                 else
-                    ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_parts;
+                    ___mechImage.color = Assembly.Settings.storage_parts;
             }
             else if (chassisDef.IsVehicle())
-                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_vehicle;
+                ___mechImage.color = Assembly.Settings.storage_vehicle;
             else if (chassisDef.IsOmni())
-                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_omni;
+                ___mechImage.color = Assembly.Settings.storage_omni;
             else
-                ___mechImage.color = SimpleMechAssembly_Main.Settings.storage_mech;
+                ___mechImage.color = Assembly.Settings.storage_mech;
         }
     }
 

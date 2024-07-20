@@ -96,11 +96,11 @@
     <Compile Include="Ext.cs" />
     <Compile Include="ListElementController_SalvageMechPart_NotListView_GetName.cs" />
     <Compile Include="MAIntegration.cs" />
-    <Compile Include="SimpleMechAssembly_Init.cs" />
-    <Compile Include="SimpleMechAssembly_Main.cs" />
-    <Compile Include="SimpleMechAssembly_Patches.cs" />
-    <Compile Include="SimpleMechAssembly_Settings.cs" />
-    <Compile Include="SimpleMechAssembly_StructurePointBasedSalvage.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="Assembly.cs" />
+    <Compile Include="Patches.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="Salvage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

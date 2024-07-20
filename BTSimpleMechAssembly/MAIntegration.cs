@@ -21,7 +21,7 @@ namespace BTSimpleMechAssembly
             }
             if (idType == 0) // assembly variant
             {
-                if (SimpleMechAssembly_Main.Settings.MAIntegration_OverrideOnly)
+                if (Assembly.Settings.MAIntegration_OverrideOnly)
                     __result = chassis.GetVariantOverride() ?? __result;
                 else
                     __result = chassis.GetVariant();
@@ -37,28 +37,28 @@ namespace BTSimpleMechAssembly
 
         internal static void TryPatch(HarmonyInstance h)
         {
-            Assembly a = AccessExtensionPatcher.GetLoadedAssemblyByName("MechAffinity");
+            System.Reflection.Assembly a = AccessExtensionPatcher.GetLoadedAssemblyByName("MechAffinity");
             if (a == null)
             {
-                SimpleMechAssembly_Main.Log.Log("MechAffinity not found");
+                Assembly.Log.Log("MechAffinity not found");
                 return;
             }
 
             Type am = a.GetType("MechAffinity.PilotAffinityManager");
             try
             {
-                SimpleMechAssembly_Main.Log.Log("loading MechAffinity...");
+                Assembly.Log.Log("loading MechAffinity...");
 
                 MethodInfo original = am.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where((m) => m.Name == "getPrefabIdInternal" && m.GetParameters()[0].ParameterType == typeof(ChassisDef)).Single();
-                SimpleMechAssembly_Main.Log.Log($"patching {original.FullName()}");
+                Assembly.Log.Log($"patching {original.FullName()}");
                 h.Patch(original, null, new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MAIntegration), nameof(GetPrefabIdInternal_Postfix))));
 
 
                 original = am.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where((m) => m.Name == "getPrefabIdInternal" && m.GetParameters()[0].ParameterType == typeof(VehicleChassisDef)).Single();
-                SimpleMechAssembly_Main.Log.Log($"patching {original.FullName()}");
+                Assembly.Log.Log($"patching {original.FullName()}");
                 h.Patch(original, null, new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MAIntegration), nameof(GetPrefabIdInternalV_Postfix))));
 
-                SimpleMechAssembly_Main.Log.Log("MechAffinity patched");
+                Assembly.Log.Log("MechAffinity patched");
             }
             catch (Exception e)
             {

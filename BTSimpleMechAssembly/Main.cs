@@ -15,37 +15,37 @@ using System.Threading.Tasks;
 
 namespace BTSimpleMechAssembly
 {
-    class SimpleMechAssembly_Init
+    class Main
     {
         public static void Init(string directory, string settingsJSON)
         {
-            SimpleMechAssembly_Main.Log = Logger.GetLogger("BTSimpleMechAssembly");
+            Assembly.Log = Logger.GetLogger("BTSimpleMechAssembly");
             try
             {
-                SimpleMechAssembly_Main.Settings = JsonConvert.DeserializeObject<SimpleMechAssembly_Settings>(settingsJSON);
+                Assembly.Settings = JsonConvert.DeserializeObject<Settings>(settingsJSON);
             }
             catch (Exception e)
             {
-                SimpleMechAssembly_Main.Log.LogException("error reading settings, using defaults", e);
-                SimpleMechAssembly_Main.Settings = new SimpleMechAssembly_Settings();
+                Assembly.Log.LogException("error reading settings, using defaults", e);
+                Assembly.Settings = new Settings();
             }
-            if (SimpleMechAssembly_Main.Settings.LogLevelLog)
+            if (Assembly.Settings.LogLevelLog)
                 Logger.SetLoggerLevel("BTSimpleMechAssembly", LogLevel.Log);
             var harmony = HarmonyInstance.Create("com.github.mcb5637.BTSimpleMechAssembly");
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
-            AccessExtensionPatcher.PatchAll(harmony, Assembly.GetExecutingAssembly());
-            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageActive)
+            harmony.PatchAll(System.Reflection.Assembly.GetExecutingAssembly());
+            AccessExtensionPatcher.PatchAll(harmony, System.Reflection.Assembly.GetExecutingAssembly());
+            if (Assembly.Settings.StructurePointBasedSalvageActive)
             {
                 try
                 {
                     harmony.Patch(typeof(Contract).GetMethod("GenerateSalvage", BindingFlags.NonPublic | BindingFlags.Instance),
                                 null,
-                                new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Postfix")),
-                                new HarmonyMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage).GetMethod("Transpiler")));
+                                new HarmonyMethod(typeof(Salvage).GetMethod("Postfix")),
+                                new HarmonyMethod(typeof(Salvage).GetMethod("Transpiler")));
                     harmony.Patch(AccessTools.DeclaredMethod(typeof(Contract), "AddMechComponentToSalvage"), null, null,
-                        new HarmonyMethod(AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "CheckSalvageTranspiler")));
+                        new HarmonyMethod(AccessTools.DeclaredMethod(typeof(Salvage), "CheckSalvageTranspiler")));
                     harmony.Patch(AccessTools.DeclaredMethod(typeof(Contract), "CreateAndAddMechPart"), null, null,
-                        new HarmonyMethod(AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "CheckMechSalvageTranspiler")));
+                        new HarmonyMethod(AccessTools.DeclaredMethod(typeof(Salvage), "CheckMechSalvageTranspiler")));
                 }
                 catch (Exception e)
                 {

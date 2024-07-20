@@ -34,28 +34,28 @@ namespace BTSimpleMechAssembly
 
         public static void TryPatch(HarmonyInstance h)
         {
-            if (!SimpleMechAssembly_Main.Settings.CUVehicle_CombatHudDisplayName)
+            if (!Assembly.Settings.CUVehicle_CombatHudDisplayName)
                 return;
-            Assembly a = AccessExtensionPatcher.GetLoadedAssemblyByName("CustomUnits");
+            System.Reflection.Assembly a = AccessExtensionPatcher.GetLoadedAssemblyByName("CustomUnits");
             if (a == null)
             {
-                SimpleMechAssembly_Main.Log.Log("CustomUnits.dll not found");
+                Assembly.Log.Log("CustomUnits.dll not found");
                 return;
             }
             Type t = a.GetType("CustomUnits.CustomMech");
             if (t == null)
             {
-                SimpleMechAssembly_Main.Log.Log("CustomUnits.CustomMech not found");
+                Assembly.Log.Log("CustomUnits.CustomMech not found");
                 return;
             }
             MethodInfo i = t.GetMethod("GetActorInfoFromVisLevel", BindingFlags.Public | BindingFlags.Instance);
             if (i == null)
             {
-                SimpleMechAssembly_Main.Log.Log("CustomUnits.CustomMech.GetActorInfoFromVisLevel not found");
+                Assembly.Log.Log("CustomUnits.CustomMech.GetActorInfoFromVisLevel not found");
                 return;
             }
             h.Patch(i, null, null, new HarmonyMethod(AccessTools.Method(typeof(CustomMech_GetActorInfoFromVisLevel), nameof(Transpiler))));
-            SimpleMechAssembly_Main.Log.Log("CustomUnits.CustomMech.GetActorInfoFromVisLevel patched");
+            Assembly.Log.Log("CustomUnits.CustomMech.GetActorInfoFromVisLevel patched");
         }
     }
 }

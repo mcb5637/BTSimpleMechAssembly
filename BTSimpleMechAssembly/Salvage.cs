@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace BTSimpleMechAssembly
 {
-    class SimpleMechAssembly_StructurePointBasedSalvage
+    class Salvage
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
         {
@@ -24,7 +24,7 @@ namespace BTSimpleMechAssembly
         public static void Postfix(Contract __instance, List<UnitResult> enemyMechs, List<VehicleDef> enemyVehicles, List<UnitResult> lostUnits,
             ref List<SalvageDef> ___finalPotentialSalvage)
         {
-            ILog log = SimpleMechAssembly_Main.Log;
+            ILog log = Assembly.Log;
             if (__instance.BattleTechGame.Simulation == null)
             {
                 log.LogError("trying to generarte salvage without a simgame");
@@ -79,7 +79,7 @@ namespace BTSimpleMechAssembly
                 GenerateSalvageForVehicle(__instance, v, s, ___finalPotentialSalvage);
             }
 
-            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance > 0)
+            if (Assembly.Settings.StructurePointBasedSalvageTurretComponentSalvageChance > 0)
             {
                 foreach (Turret t in __instance.BattleTechGame.Combat.AllEnemies.OfType<Turret>().Where(t => t.IsDead))
                 {
@@ -87,14 +87,14 @@ namespace BTSimpleMechAssembly
                     foreach (TurretComponentRef r in t.TurretDef.Inventory)
                     {
                         float rand = s.NetworkRandom.Float(0f, 1f);
-                        if (rand < SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance)
+                        if (rand < Assembly.Settings.StructurePointBasedSalvageTurretComponentSalvageChance)
                         {
-                            log.Log($"added salvage {r.Def.Description.Id} ({rand}<{SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance})");
+                            log.Log($"added salvage {r.Def.Description.Id} ({rand}<{Assembly.Settings.StructurePointBasedSalvageTurretComponentSalvageChance})");
                             AddUpgradeToSalvage(__instance, r.Def, s, ___finalPotentialSalvage);
                         }
                         else
                         {
-                            log.Log($"missed salvage {r.Def.Description.Id} ({rand}>={SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageTurretComponentSalvageChance})");
+                            log.Log($"missed salvage {r.Def.Description.Id} ({rand}>={Assembly.Settings.StructurePointBasedSalvageTurretComponentSalvageChance})");
                         }
                     }
                 }
@@ -129,27 +129,27 @@ namespace BTSimpleMechAssembly
         // mechs and CU 2 vehicles
         private static void GenerateSalvageForMech(Contract __instance, UnitResult u, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
         {
-            ILog log = SimpleMechAssembly_Main.Log;
+            ILog log = Assembly.Log;
             log.Log($"generating salvage for mech {u.mech.Chassis.Description.UIName} {u.mech.Chassis.VariantName}");
-            if (!u.mech.IsVehicle() || SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles)
+            if (!u.mech.IsVehicle() || Assembly.Settings.SalvageAndAssembleVehicles)
             {
                 float maxstruct = 0;
                 float currstruct = 0;
                 foreach (ChassisLocations c in LP)
                 {
-                    currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageLowPriorityFactor;
-                    maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageLowPriorityFactor;
+                    currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * Assembly.Settings.StructurePointBasedSalvageLowPriorityFactor;
+                    maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * Assembly.Settings.StructurePointBasedSalvageLowPriorityFactor;
                 }
                 foreach (ChassisLocations c in HP)
                 {
-                    currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor;
-                    maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor;
+                    currstruct += u.mech.GetLocationLoadoutDef(c).CurrentInternalStructure * Assembly.Settings.StructurePointBasedSalvageHighPriorityFactor;
+                    maxstruct += u.mech.GetChassisLocationDef(c).InternalStructure * Assembly.Settings.StructurePointBasedSalvageHighPriorityFactor;
                 }
                 float left = currstruct / maxstruct;
                 int maxparts = GetMaxMechParts(s);
-                int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
+                int minparts = Assembly.Settings.StructurePointBasedSalvageMinPartsFromMech;
                 float parts = left * maxparts;
-                log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
+                log.Log($"calculated parts {parts}, ct is {u.mech.GetChassisLocationDef(ChassisLocations.CenterTorso).InternalStructure * Assembly.Settings.StructurePointBasedSalvageHighPriorityFactor / maxstruct} of total points");
                 float fract = parts - (float)Math.Floor(parts);
                 float rand = s.NetworkRandom.Float(0f, 1f);
                 MechDef toSalvage = GetSalvageRedirect(s, u.mech);
@@ -202,7 +202,7 @@ namespace BTSimpleMechAssembly
 
         private static int GetMaxMechParts(SimGameState s)
         {
-            if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromCompanyTags)
+            if (Assembly.Settings.StructurePointBasedSalvageMaxPartsFromCompanyTags)
             {
                 string tag = s.CompanyTags.FirstOrDefault((t) => t.StartsWith("StructurePointBasedSalvageMaxParts_"));
                 if (tag != null)
@@ -213,22 +213,22 @@ namespace BTSimpleMechAssembly
                     }
                 }
             }
-            return Math.Min(s.Constants.Story.DefaultMechPartMax, SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMaxPartsFromMech);
+            return Math.Min(s.Constants.Story.DefaultMechPartMax, Assembly.Settings.StructurePointBasedSalvageMaxPartsFromMech);
         }
 
         // CU 1 only
         private static void GenerateSalvageForVehicle(Contract __instance, Vehicle v, SimGameState s, List<SalvageDef> ___finalPotentialSalvage)
         {
-            ILog log = SimpleMechAssembly_Main.Log;
+            ILog log = Assembly.Log;
             log.Log($"generating salvage for vehicle {v.VehicleDef.Chassis.Description.Name} {v.VehicleDef.Description.Id}");
-            if (SimpleMechAssembly_Main.Settings.SalvageAndAssembleVehicles)
+            if (Assembly.Settings.SalvageAndAssembleVehicles)
             {
                 MechDef m = v.VehicleDef.GetFakeVehicle();
                 if (m != null && m.IsVehicle())
                 {
                     float left = ((v.VehicleDef.Chassis.HasTurret ? v.TurretStructure : 0f) + v.LeftSideStructure + v.RightSideStructure + v.FrontStructure + v.RearStructure) / v.SummaryStructureMax;
                     int maxparts = GetMaxMechParts(s);
-                    int minparts = SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMinPartsFromMech;
+                    int minparts = Assembly.Settings.StructurePointBasedSalvageMinPartsFromMech;
                     float parts = left * maxparts;
                     log.Log($"calculated parts {parts}");
                     float fract = parts - (float)Math.Floor(parts);
@@ -267,7 +267,7 @@ namespace BTSimpleMechAssembly
         {
             if (IsBlacklisted(d))
             {
-                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted");
+                Assembly.Log.LogError("skipping, cause its blacklisted");
                 return;
             }
             __instance.CreateAndAddMechPart(s.Constants, d, num, sal);
@@ -284,7 +284,7 @@ namespace BTSimpleMechAssembly
             }
             if (IsBlacklisted(d))
             {
-                SimpleMechAssembly_Main.Log.LogError("skipping, cause its blacklisted");
+                Assembly.Log.LogError("skipping, cause its blacklisted");
                 return;
             }
             try
@@ -293,8 +293,8 @@ namespace BTSimpleMechAssembly
             }
             catch (Exception e)
             {
-                SimpleMechAssembly_Main.Log.LogError("failed to add mech component");
-                SimpleMechAssembly_Main.Log.LogException(e);
+                Assembly.Log.LogError("failed to add mech component");
+                Assembly.Log.LogException(e);
                 GenericPopupBuilder.Create("SMA add component error", "Please delete your .modtek folder (so everything gets regenerated next start).\nIf it still happens afterwards, please report.").AddButton("ok", null, true, null).Render();
             }
         }
@@ -306,13 +306,13 @@ namespace BTSimpleMechAssembly
 
         public static MechDef GetSalvageRedirect(SimGameState s, MechDef m)
         {
-            if (!SimpleMechAssembly_Main.Settings.UseOnlyCCAssemblyOptions)
+            if (!Assembly.Settings.UseOnlyCCAssemblyOptions)
             {
-                if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageMechPartSalvageRedirect.TryGetValue(m.Description.Id, out string red))
+                if (Assembly.Settings.StructurePointBasedSalvageMechPartSalvageRedirect.TryGetValue(m.Description.Id, out string red))
                 {
                     if (s.DataManager.MechDefs.TryGet(red, out MechDef n) && n != null)
                     {
-                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (settings): {m.Description.Id}->{red}");
+                        Assembly.Log.Log($"mechpart salvage redirection (settings): {m.Description.Id}->{red}");
                         return n;
                     }
                 }
@@ -322,7 +322,7 @@ namespace BTSimpleMechAssembly
                     c = c.Replace("mech_MechPartSalvageRedirect_", "");
                     if (s.DataManager.MechDefs.TryGet(c, out MechDef n) && n != null)
                     {
-                        SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (tag): {m.Description.Id}->{c}");
+                        Assembly.Log.Log($"mechpart salvage redirection (tag): {m.Description.Id}->{c}");
                         return n;
                     }
                 }
@@ -332,16 +332,16 @@ namespace BTSimpleMechAssembly
             {
                 if (s.DataManager.MechDefs.TryGet(v.Lootable, out MechDef o))
                 {
-                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (lootable): {m.Description.Id}->{v.Lootable}");
+                    Assembly.Log.Log($"mechpart salvage redirection (lootable): {m.Description.Id}->{v.Lootable}");
                     return o;
                 }
             }
-            if (!SimpleMechAssembly_Main.Settings.AllowNonMainVariants && !m.IsMechDefMain())
+            if (!Assembly.Settings.AllowNonMainVariants && !m.IsMechDefMain())
             {
                 MechDef ma = m.Chassis.GetMainMechDef(s.DataManager);
                 if (ma != null)
                 {
-                    SimpleMechAssembly_Main.Log.Log($"mechpart salvage redirection (main): {m.Description.Id}->{ma.Description.Id}");
+                    Assembly.Log.Log($"mechpart salvage redirection (main): {m.Description.Id}->{ma.Description.Id}");
                     return ma;
                 }
             }
@@ -350,9 +350,9 @@ namespace BTSimpleMechAssembly
 
         public static bool IsBlacklisted(MechDef d)
         {
-            if (!SimpleMechAssembly_Main.Settings.UseOnlyCCSalvageFlag)
+            if (!Assembly.Settings.UseOnlyCCSalvageFlag)
             {
-                if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+                if (Assembly.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
                     return true;
                 if (d.MechTags.Contains("BLACKLISTED") || d.Chassis.ChassisTags.Contains("BLACKLISTED"))
                     return true;
@@ -362,9 +362,9 @@ namespace BTSimpleMechAssembly
         }
         public static bool IsBlacklisted(MechComponentDef d)
         {
-            if (!SimpleMechAssembly_Main.Settings.UseOnlyCCSalvageFlag)
+            if (!Assembly.Settings.UseOnlyCCSalvageFlag)
             {
-                if (SimpleMechAssembly_Main.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
+                if (Assembly.Settings.StructurePointBasedSalvageSalvageBlacklist.Contains(d.Description.Id))
                     return true;
                 if (d.ComponentTags.Contains("BLACKLISTED"))
                     return true;
@@ -375,14 +375,14 @@ namespace BTSimpleMechAssembly
         public static IEnumerable<CodeInstruction> CheckSalvageTranspiler(IEnumerable<CodeInstruction> inst)
         {
             yield return new CodeInstruction(OpCodes.Ldarg_2);
-            yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "IsBlacklisted", new Type[] { typeof(MechComponentDef) }));
+            yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(Salvage), "IsBlacklisted", new Type[] { typeof(MechComponentDef) }));
             foreach (CodeInstruction c in inst.Skip(4))
                 yield return c;
         }
         public static IEnumerable<CodeInstruction> CheckMechSalvageTranspiler(IEnumerable<CodeInstruction> inst)
         {
             yield return new CodeInstruction(OpCodes.Ldarg_2);
-            yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(SimpleMechAssembly_StructurePointBasedSalvage), "IsBlacklisted", new Type[] { typeof(MechDef) }));
+            yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(Salvage), "IsBlacklisted", new Type[] { typeof(MechDef) }));
             foreach (CodeInstruction c in inst.Skip(10))
                 yield return c;
         }

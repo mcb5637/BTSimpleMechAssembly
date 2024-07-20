@@ -27,33 +27,33 @@ namespace BTSimpleMechAssembly
         {
             try
             {
-                Assembly a = AccessExtensionPatcher.GetLoadedAssemblyByName("CustomComponents");
+                System.Reflection.Assembly a = AccessExtensionPatcher.GetLoadedAssemblyByName("CustomComponents");
                 if (a == null)
                 {
-                    SimpleMechAssembly_Main.Log.Log("CustomComponents not found");
+                    Assembly.Log.Log("CustomComponents not found");
                     return;
                 }
 
-                SimpleMechAssembly_Main.Log.Log("loading CustomComponents...");
+                Assembly.Log.Log("loading CustomComponents...");
                 // do reflection magic to get delegates to CustomComponents funcs
                 Type ccflags = a.GetType("CustomComponents.Flags");
                 Type cclootable = a.GetType("CustomComponents.LootableDefault");
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), SimpleMechAssembly_Main.Log.Log);
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCLootable, null, (mi, _) => mi.MakeGenericMethod(cclootable), SimpleMechAssembly_Main.Log.Log);
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types", null, SimpleMechAssembly_Main.Log.Log);
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Contract_GenerateSalvage", "IsDestroyed", ref MechDefIsDead, null, null, SimpleMechAssembly_Main.Log.Log);
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), Assembly.Log.Log);
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCLootable, null, (mi, _) => mi.MakeGenericMethod(cclootable), Assembly.Log.Log);
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types", null, Assembly.Log.Log);
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Contract_GenerateSalvage", "IsDestroyed", ref MechDefIsDead, null, null, Assembly.Log.Log);
 
                 // do more magic to get no_salvage flag out of it
                 if (ccflags != null)
                 {
-                    SimpleMechAssembly_Main.Log.Log("generating CCFlags.GetNotSalvageable");
+                    Assembly.Log.Log("generating CCFlags.GetNotSalvageable");
                     MethodInfo m = ccflags.GetMethods().Where((i) => i.Name.Equals("get_NotSalvagable")).Single();
                     CCFlagsGetNotSalvageable = AccessExtensionPatcher.GenerateCastAndCall<Func<object, bool>>(m);
                     CCLootableGetItem = AccessExtensionPatcher.GenerateCastAndCall<Func<object, string>>(cclootable.GetProperty("ItemID").GetGetMethod());
                 }
 
                 // do a lot more magic to register AssemblyVariant & VAssemblyVariant
-                SimpleMechAssembly_Main.Log.Log("Generating Customs");
+                Assembly.Log.Log("Generating Customs");
                 ConstructorInfo custcomatctor = a.GetType("CustomComponents.CustomComponentAttribute").GetConstructor(new Type[] { typeof(string) });
                 Type simplecustom = a.GetType("CustomComponents.SimpleCustom`1");
                 AssemblyVariantType = AccessExtensionPatcher.GenerateType("AssemblyVariant", simplecustom.MakeGenericType(typeof(ChassisDef)),
@@ -63,15 +63,15 @@ namespace BTSimpleMechAssembly
                     new Type[] { typeof(IVAssemblyVariant) },
                     new CustomAttributeBuilder[] { new CustomAttributeBuilder(custcomatctor, new object[] { "VAssemblyVariant" }) });
 
-                SimpleMechAssembly_Main.Log.Log("Registering Customs");
+                Assembly.Log.Log("Registering Customs");
                 RegisterCCTypes(new Type[] { AssemblyVariantType, VAssemblyVariantType });
 
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.ChassisDefExtensions", "GetComponent", ref GetCCAssemblyVariant, null, (mi, _) => mi.MakeGenericMethod(AssemblyVariantType), SimpleMechAssembly_Main.Log.Log);
-                if (!AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.VehicleExtentions", "GetComponent", ref GetCCVehicleAssemblyVariant, null, (mi, _) => mi.MakeGenericMethod(VAssemblyVariantType), SimpleMechAssembly_Main.Log.Log))
+                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.ChassisDefExtensions", "GetComponent", ref GetCCAssemblyVariant, null, (mi, _) => mi.MakeGenericMethod(AssemblyVariantType), Assembly.Log.Log);
+                if (!AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.VehicleExtentions", "GetComponent", ref GetCCVehicleAssemblyVariant, null, (mi, _) => mi.MakeGenericMethod(VAssemblyVariantType), Assembly.Log.Log))
                 {
-                    if (SimpleMechAssembly_Main.Settings.FakeVehilceTag != null)
+                    if (Assembly.Settings.FakeVehilceTag != null)
                     {
-                        SimpleMechAssembly_Main.Log.LogWarning("warning: SMA FakeVehilceTag is set, but CustomComponents does not support VehicleDef Customs. Upgrade your CustomComponents to use Vehicle CrossAssembly");
+                        Assembly.Log.LogWarning("warning: SMA FakeVehilceTag is set, but CustomComponents does not support VehicleDef Customs. Upgrade your CustomComponents to use Vehicle CrossAssembly");
                     }
                 }
             }

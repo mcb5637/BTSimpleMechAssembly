@@ -12,9 +12,9 @@ using UnityEngine;
 
 namespace BTSimpleMechAssembly
 {
-    static class SimpleMechAssembly_Main
+    static class Assembly
     {
-        public static SimpleMechAssembly_Settings Settings;
+        public static Settings Settings;
         public static ILog Log;
 
         public static int GetNumPartsForAssembly(SimGameState s, MechDef m)

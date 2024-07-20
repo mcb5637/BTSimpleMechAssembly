@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BTSimpleMechAssembly
 {
-    class SimpleMechAssembly_Settings
+    class Settings
     {
         public string CrossAssemblyUpgradeRequired = null;
         public bool BTXCrossAssemblyAlwaysAllowIfSimulation = false;
