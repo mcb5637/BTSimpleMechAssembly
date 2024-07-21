@@ -40,7 +40,7 @@ namespace BTSimpleMechAssembly
             }
             catch (Exception e)
             {
-                FileLog.Log(e.ToString());
+                Assembly.Log.LogException(e);
             }
             Assembly.Log.Log($"FakeVehilceTag={Assembly.Settings.FakeVehilceTag ?? "null"}, SalvageAndAssembleVehicles={Assembly.Settings.SalvageAndAssembleVehicles}");
         }

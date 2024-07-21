@@ -8,22 +8,24 @@ using AccessExtension;
 using Harmony;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 namespace BTSimpleMechAssembly
 {
     static class CCIntegration
     {
-        internal static Func<MechComponentDef, object> GetCCFlagsMCDef = (_) => null;
-        internal static Func<object, bool> CCFlagsGetNotSalvageable = (_) => false;
         internal static Func<VehicleChassisDef, IVAssemblyVariant> GetCCVehicleAssemblyVariant = (_) => null;
         internal static Func<ChassisDef, IAssemblyVariant> GetCCAssemblyVariant = (_) => null;
-        internal static Func<MechComponentDef, object> GetCCLootable = (_) => null;
-        internal static Func<object, string> CCLootableGetItem = (_) => null;
         private static Action<Type[]> RegisterCCTypes = (_) => { };
         private static Type VAssemblyVariantType = null, AssemblyVariantType = null;
         internal static Func<MechDef, bool> MechDefIsDead = (_) => false;
 
-        public static void LoadDelegates()
+        private static MethodInfo MechComponentGetFlags = null;
+        private static MethodInfo FlagsGetNoSalvage = null;
+        private static MethodInfo MechComponentGetLootable = null;
+        private static MethodInfo LootableGetItem = null;
+
+        public static void LoadDelegates(HarmonyInstance h)
         {
             try
             {
@@ -36,20 +38,52 @@ namespace BTSimpleMechAssembly
 
                 Assembly.Log.Log("loading CustomComponents...");
                 // do reflection magic to get delegates to CustomComponents funcs
-                Type ccflags = a.GetType("CustomComponents.Flags");
-                Type cclootable = a.GetType("CustomComponents.LootableDefault");
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCFlagsMCDef, null, (mi, _) => mi.MakeGenericMethod(ccflags), Assembly.Log.Log);
-                AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.MechComponentDefExtensions", "GetComponent", ref GetCCLootable, null, (mi, _) => mi.MakeGenericMethod(cclootable), Assembly.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types", null, Assembly.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Contract_GenerateSalvage", "IsDestroyed", ref MechDefIsDead, null, null, Assembly.Log.Log);
 
-                // do more magic to get no_salvage flag out of it
-                if (ccflags != null)
+                // do more magic to access customs
+                Assembly.Log.Log("loading flags...");
+                Type getccflags = a.GetType("CustomComponents.FlagExtensions");
+                if (getccflags != null)
                 {
-                    Assembly.Log.Log("generating CCFlags.GetNotSalvageable");
-                    MethodInfo m = ccflags.GetMethods().Where((i) => i.Name.Equals("get_NotSalvagable")).Single();
-                    CCFlagsGetNotSalvageable = AccessExtensionPatcher.GenerateCastAndCall<Func<object, bool>>(m);
-                    CCLootableGetItem = AccessExtensionPatcher.GenerateCastAndCall<Func<object, string>>(cclootable.GetProperty("ItemID").GetGetMethod());
+                    MechComponentGetFlags = getccflags.GetMethods().SingleOrDefault((m) => m.Name == "CCFlags");
+                    Assembly.Log.Log($"found new flags: {MechComponentGetFlags.FullName()}");
+                }
+                if (MechComponentGetFlags == null)
+                {
+                    Type ccflags = a.GetType("CustomComponents.Flags");
+                    MechComponentGetFlags = a.GetType("CCustomComponents.MechComponentDefExtensions").GetMethods().SingleOrDefault((m) => m.Name == "GetComponent")?.MakeGenericMethod(ccflags);
+                    Assembly.Log.Log($"found old flags: {MechComponentGetFlags.FullName()}");
+                }
+                if (MechComponentGetFlags != null)
+                {
+                    FlagsGetNoSalvage = MechComponentGetFlags.ReturnType.GetProperties().SingleOrDefault((p) => p.Name == "NoSalvage")?.GetGetMethod();
+                    Assembly.Log.Log($"salvage from flags: {FlagsGetNoSalvage.FullName()}");
+                }
+                if (MechComponentGetFlags != null && FlagsGetNoSalvage != null)
+                {
+                    Assembly.Log.Log("patching IsCCNoSalvage");
+                    h.Patch(AccessTools.Method(typeof(CCIntegration), nameof(IsCCNoSalvage), new Type[] {typeof(MechComponentDef)}), null, null, new HarmonyMethod(typeof(CCIntegration), nameof(IsCCNoSalvage_Trans)));
+                }
+
+
+                Assembly.Log.Log("loading lootable...");
+                Type getlootable = a.GetType("CustomComponents.MechComponentDefExtensions");
+                if (getlootable != null)
+                {
+                    Type cclootable = a.GetType("CustomComponents.LootableDefault");
+                    MechComponentGetLootable = getlootable.GetMethods().SingleOrDefault((m) => m.Name == "GetComponent")?.MakeGenericMethod(cclootable);
+                    Assembly.Log.Log($"found lootable: {MechComponentGetLootable.FullName()}");
+                    if (MechComponentGetLootable != null)
+                    {
+                        LootableGetItem = MechComponentGetLootable.ReturnType.GetProperties().SingleOrDefault((p) => p.Name == "ItemID")?.GetGetMethod();
+                        Assembly.Log.Log($"item from lootable: {LootableGetItem.FullName()}");
+                        if (LootableGetItem != null)
+                        {
+                            Assembly.Log.Log("patching GetCCLootableItem");
+                            h.Patch(AccessTools.Method(typeof(CCIntegration), nameof(GetCCLootableItem)), null, null, new HarmonyMethod(typeof(CCIntegration), nameof(GetCCLootableItem_Trans)));
+                        }
+                    }
                 }
 
                 // do a lot more magic to register AssemblyVariant & VAssemblyVariant
@@ -77,7 +111,7 @@ namespace BTSimpleMechAssembly
             }
             catch (Exception e)
             {
-                FileLog.Log(e.ToString());
+                Assembly.Log.LogException(e);
             }
         }
 
@@ -92,12 +126,35 @@ namespace BTSimpleMechAssembly
                 return false;
             return v.NoSalvage;
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool IsCCNoSalvage(this MechComponentDef d)
         {
-            object f = GetCCFlagsMCDef(d);
-            if (f != null)
-                return CCFlagsGetNotSalvageable(f);
             return false;
+        }
+        private static IEnumerable<CodeInstruction> IsCCNoSalvage_Trans(ILGenerator il)
+        {
+            Label retfalse = il.DefineLabel();
+            return new CodeInstruction[]
+            {
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Call, MechComponentGetFlags),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Ldnull),
+                new CodeInstruction(OpCodes.Beq, retfalse),
+
+                new CodeInstruction(OpCodes.Call, FlagsGetNoSalvage),
+                new CodeInstruction(OpCodes.Ret),
+
+                lb(new CodeInstruction(OpCodes.Pop), retfalse),
+                new CodeInstruction(OpCodes.Ldc_I4_0),
+                new CodeInstruction(OpCodes.Ret),
+            };
+            CodeInstruction lb(CodeInstruction c, Label l)
+            {
+                c.labels.Add(l);
+                return c;
+            }
         }
 
         public static string GetVariant(this ChassisDef d)
@@ -142,12 +199,34 @@ namespace BTSimpleMechAssembly
             return iVAssemblyVariant?.PrefabID;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static string GetCCLootableItem(this MechComponentDef d)
         {
-            object l = GetCCLootable(d);
-            if (l != null)
-                return CCLootableGetItem(l);
             return null;
+        }
+        private static IEnumerable<CodeInstruction> GetCCLootableItem_Trans(ILGenerator il)
+        {
+            Label retfalse = il.DefineLabel();
+            return new CodeInstruction[]
+            {
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Call, MechComponentGetLootable),
+                new CodeInstruction(OpCodes.Dup),
+                new CodeInstruction(OpCodes.Ldnull),
+                new CodeInstruction(OpCodes.Beq, retfalse),
+
+                new CodeInstruction(OpCodes.Call, LootableGetItem),
+                new CodeInstruction(OpCodes.Ret),
+
+                lb(new CodeInstruction(OpCodes.Pop), retfalse),
+                new CodeInstruction(OpCodes.Ldnull),
+                new CodeInstruction(OpCodes.Ret),
+            };
+            CodeInstruction lb(CodeInstruction c, Label l)
+            {
+                c.labels.Add(l);
+                return c;
+            }
         }
     }
 

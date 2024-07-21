@@ -56,9 +56,9 @@ namespace BTSimpleMechAssembly
 
         public static void FinishedLoading()
         {
-            CCIntegration.LoadDelegates();
-            CUIntegration.LoadDelegates();
             var h = HarmonyInstance.Create("com.github.mcb5637.BTSimpleMechAssembly");
+            CCIntegration.LoadDelegates(h);
+            CUIntegration.LoadDelegates();
             MAIntegration.TryPatch(h);
             CustomMech_GetActorInfoFromVisLevel.TryPatch(h);
         }
