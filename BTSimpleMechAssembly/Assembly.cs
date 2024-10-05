@@ -349,7 +349,7 @@ namespace BTSimpleMechAssembly
                 pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({com} Complete) ({SimGameState.GetCBillString(cost)})\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
-            pop.Render();
+            OverridePopupSize(pop.Render());
         }
 
         public static string GetAssembleNotEnoughPartsText(SimGameState s, MechDef d)
@@ -429,7 +429,7 @@ namespace BTSimpleMechAssembly
                 pop.Body += $"[[DM.MechDefs[{m.Description.Id}],{m.Chassis.Description.UIName} {m.Chassis.VariantName}]] ({count} Parts/{com} Complete) ({SimGameState.GetCBillString(cost)})\n";
             }
             pop.AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0f, true);
-            pop.Render();
+            OverridePopupSize(pop.Render());
         }
 
         public static void PerformMechAssemblyStorePopup(SimGameState s, MechDef d, Action onClose)
@@ -561,6 +561,32 @@ namespace BTSimpleMechAssembly
             else
                 ownedorknown = owned.ToString();
             return $"{pieces}({varpieces})/{needed}({ownedorknown})";
+        }
+
+        public static IEnumerable<Transform> GetChildren(this Transform t)
+        {
+            foreach (Transform c in t)
+                yield return c;
+        }
+
+        public static void OverridePopupSize(GenericPopup p)
+        {
+            float sizex = Settings.AssemblyPopupSizeIncrease;
+            Transform rep = p.transform.GetChildren().First((x) => x.name == "Representation");
+            Transform expanderViewport = rep.GetChildren().First((x) => x.name == "ExpanderViewport");
+            doTransf(expanderViewport.GetComponent<RectTransform>(), sizex);
+            Transform containerLayout = expanderViewport.GetChildren().First((x) => x.name == "popupContainerLayout");
+            doTransf(containerLayout.GetComponent<RectTransform>(), sizex);
+            doTransf(containerLayout.GetChildren().First((x) => x.name == "popUpTitle").GetComponent<RectTransform>(), sizex);
+            doTransf(containerLayout.GetChildren().First((x) => x.name == "Text_content").GetComponent<RectTransform>(), sizex);
+            doTransf(containerLayout.GetChildren().First((x) => x.name == "popup_buttonLayout").GetComponent<RectTransform>(), sizex);
+
+            void doTransf(RectTransform r, float x)
+            {
+                Vector2 v = r.sizeDelta;
+                v.x += x;
+                r.sizeDelta = v;
+            }
         }
 
         public class SimpleMechAssembly_InterruptManager_AssembleMechEntry : SimGameInterruptManager.Entry

@@ -32,6 +32,7 @@ namespace BTSimpleMechAssembly
         public int AssembledMechsReadyingFlatCost = 1;
         public int AssembledMechsReadyingPerNonFixedComponentCost = 0;
         public bool AutoQueryAssembly = true;
+        public float AssemblyPopupSizeIncrease = 600;
         public string StorageColorParts
         {
             set => ColorUtility.TryParseHtmlString(value, out storage_parts);
