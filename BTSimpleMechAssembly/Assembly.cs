@@ -569,12 +569,18 @@ namespace BTSimpleMechAssembly
                 yield return c;
         }
 
+        private static float? PopupSizeOrig = null;
         public static void OverridePopupSize(GenericPopup p)
         {
             float sizex = Settings.AssemblyPopupSizeIncrease;
             Transform rep = p.transform.GetChildren().First((x) => x.name == "Representation");
             Transform expanderViewport = rep.GetChildren().First((x) => x.name == "ExpanderViewport");
-            doTransf(expanderViewport.GetComponent<RectTransform>(), sizex);
+            RectTransform expanderViewportTrans = expanderViewport.GetComponent<RectTransform>();
+            if (PopupSizeOrig == null)
+                PopupSizeOrig = expanderViewportTrans.sizeDelta.x;
+            else if (expanderViewportTrans.sizeDelta.x > (float)PopupSizeOrig)
+                return;
+            doTransf(expanderViewportTrans, sizex);
             Transform containerLayout = expanderViewport.GetChildren().First((x) => x.name == "popupContainerLayout");
             doTransf(containerLayout.GetComponent<RectTransform>(), sizex);
             doTransf(containerLayout.GetChildren().First((x) => x.name == "popUpTitle").GetComponent<RectTransform>(), sizex);
