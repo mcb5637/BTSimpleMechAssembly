@@ -24,6 +24,8 @@ namespace BTSimpleMechAssembly
         private static MethodInfo FlagsGetNoSalvage = null;
         private static MethodInfo MechComponentGetLootable = null;
         private static MethodInfo LootableGetItem = null;
+        private static FieldInfo AutoFixerShared = null;
+        private static MethodInfo AutoFixerProcess = null;
 
         public static void LoadDelegates(HarmonyInstance h)
         {
@@ -40,7 +42,7 @@ namespace BTSimpleMechAssembly
                 // do reflection magic to get delegates to CustomComponents funcs
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Registry", "RegisterSimpleCustomComponents", ref RegisterCCTypes, (mi) => mi.GetParameters().First().Name=="types", null, Assembly.Log.Log);
                 AccessExtensionPatcher.GetDelegateFromAssembly(a, "CustomComponents.Contract_GenerateSalvage", "IsDestroyed", ref MechDefIsDead, null, null, Assembly.Log.Log);
-
+                
                 // do more magic to access customs
                 Assembly.Log.Log("loading flags...");
                 Type getccflags = a.GetType("CustomComponents.FlagExtensions");
@@ -84,6 +86,18 @@ namespace BTSimpleMechAssembly
                             h.Patch(AccessTools.Method(typeof(CCIntegration), nameof(GetCCLootableItem)), null, null, new HarmonyMethod(typeof(CCIntegration), nameof(GetCCLootableItem_Trans)));
                         }
                     }
+                }
+
+                Assembly.Log.Log("loading autofixer...");
+                Type autofixer = a.GetType("CustomComponents.AutoFixer");
+                if (autofixer != null)
+                {
+                    Assembly.Log.Log($"found autofixer: {autofixer.FullName}");
+                    AutoFixerShared = AccessTools.Field(autofixer, "Shared");
+                    Assembly.Log.Log($"found autofixer shared: {AutoFixerShared.Name}");
+                    AutoFixerProcess = AccessTools.Method(autofixer, "ProcessMechDefs");
+                    Assembly.Log.Log($"found autofixer process: {AutoFixerProcess.FullName()}");
+                    h.Patch(AccessTools.Method(typeof(CCIntegration), nameof(RunAutoFixer)), null, null, new HarmonyMethod(typeof(CCIntegration), nameof(RunAutoFixer_Trans)));
                 }
 
                 // do a lot more magic to register AssemblyVariant & VAssemblyVariant
@@ -227,6 +241,26 @@ namespace BTSimpleMechAssembly
                 c.labels.Add(l);
                 return c;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void RunAutoFixer(List<MechDef> m)
+        {
+
+        }
+        private static IEnumerable<CodeInstruction> RunAutoFixer_Trans()
+        {
+            return new CodeInstruction[]
+            {
+                new CodeInstruction(OpCodes.Ldsfld, AutoFixerShared),
+                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Call, AutoFixerProcess),
+                new CodeInstruction(OpCodes.Ret),
+            };
+        }
+        internal static void RunSingleAutoFixer(this MechDef m)
+        {
+            RunAutoFixer(new List<MechDef>() { m });
         }
     }
 

@@ -375,6 +375,7 @@ namespace BTSimpleMechAssembly
 
         public static void ReadyMech(SimGameState s, MechDef d, int baySlot, bool donotoverridetime=false)
         {
+            d.RunSingleAutoFixer();
             int mechReadyTime = s.Constants.Story.MechReadyTime;
             if (Settings.AssembledMechsReadyingFlatCost > 0 && !donotoverridetime)
             {
@@ -465,6 +466,7 @@ namespace BTSimpleMechAssembly
                     }
                     else
                     {
+                        toAdd.RunSingleAutoFixer();
                         s.AddMech(mechbay, toAdd, true, false, false);
                         CallMessages(s, toAdd);
                     }
