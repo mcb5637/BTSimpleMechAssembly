@@ -171,45 +171,53 @@ namespace BTSimpleMechAssembly
             }
         }
 
-        public static string GetVariant(this ChassisDef d)
+        private static string GetVariantDefault(ChassisDef d)
+        {
+            return d.IsVehicle() ? d.Description.Id : d.Description.UIName;
+        }
+
+        public static string GetVariant(this ChassisDef d, bool affinity)
+        {
+            return d.GetVariantOverride(affinity) ?? GetVariantDefault(d);
+        }
+
+        public static string GetVariantOverride(this ChassisDef d, bool affinity)
         {
             if (d.IsVehicle())
             {
                 VehicleChassisDef vd = d.GetVehicleChassisDefFromFakeVehicle();
                 if (vd == null)
-                    return d.Description.Id;
-                IVAssemblyVariant iVAssemblyVariant = GetCCVehicleAssemblyVariant(vd);
-                //FileLog.Log($"vehicle {d.Description.Id} -> {iVAssemblyVariant?.PrefabID ?? d.Description.Id} null:{iVAssemblyVariant==null}");
-                return iVAssemblyVariant?.PrefabID ?? d.Description.Id;
+                    return null;
+                return vd.GetVariantOverride(affinity);
             }
-            return GetCCAssemblyVariant(d)?.PrefabID ?? d.Description.UIName;
-        }
-
-        public static string GetVariantOverride(this ChassisDef d)
-        {
-            if (d.IsVehicle())
+            IAssemblyVariant av = GetCCAssemblyVariant(d);
+            if (affinity && av != null && av.AffinityID != null)
+                return av.AffinityID;
+            if (av != null && av.PrefabID != null)
+                return av.PrefabID;
+            if (!Assembly.Settings.UseOnlyCCAssemblyOptions)
             {
-                VehicleChassisDef vd = d.GetVehicleChassisDefFromFakeVehicle();
-                if (vd == null)
-                    return d.Description.Id;
-                IVAssemblyVariant iVAssemblyVariant = GetCCVehicleAssemblyVariant(vd);
-                //FileLog.Log($"vehicle {d.Description.Id} -> {iVAssemblyVariant?.PrefabID ?? d.Description.Id} null:{iVAssemblyVariant==null}");
-                return iVAssemblyVariant?.PrefabID;
+                string tag = d.ChassisTags.FirstOrDefault(x => x.StartsWith("chassis_AffinityIDOverride_"));
+                if (tag != null)
+                    return tag.Substring("chassis_AffinityIDOverride_".Length);
+                tag = d.ChassisTags.FirstOrDefault(x => x.StartsWith("chassis_PrefabIDOverride_"));
+                if (tag != null)
+                    return tag.Substring("chassis_PrefabIDOverride_".Length);
             }
-            return GetCCAssemblyVariant(d)?.PrefabID;
+            return null;
         }
 
-        public static string GetVariant(this VehicleChassisDef vd)
+        public static string GetVariant(this VehicleChassisDef vd, bool affinity)
         {
-            IVAssemblyVariant iVAssemblyVariant = GetCCVehicleAssemblyVariant(vd);
-            //FileLog.Log($"vehicle {d.Description.Id} -> {iVAssemblyVariant?.PrefabID ?? d.Description.Id} null:{iVAssemblyVariant==null}");
-            return iVAssemblyVariant?.PrefabID ?? vd.Description.Id;
+            return vd.GetVariantOverride(affinity) ?? vd.Description.Id;
         }
 
-        public static string GetVariantOverride(this VehicleChassisDef vd)
+        public static string GetVariantOverride(this VehicleChassisDef vd, bool affinity)
         {
+            // no tag check here, CU needs CC anyway
             IVAssemblyVariant iVAssemblyVariant = GetCCVehicleAssemblyVariant(vd);
-            //FileLog.Log($"vehicle {d.Description.Id} -> {iVAssemblyVariant?.PrefabID ?? d.Description.Id} null:{iVAssemblyVariant==null}");
+            if (affinity && iVAssemblyVariant != null && iVAssemblyVariant.AffinityID != null)
+                return iVAssemblyVariant.AffinityID;
             return iVAssemblyVariant?.PrefabID;
         }
 
@@ -267,11 +275,13 @@ namespace BTSimpleMechAssembly
     interface IVAssemblyVariant
     {
         string PrefabID { get; set; }
+        string AffinityID { get; set; }
         bool Exclude { get; set; }
     }
     interface IAssemblyVariant
     {
         string PrefabID { get; set; }
+        string AffinityID { get; set; }
         bool Exclude { get; set; }
         string[] AssemblyAllowedWith { get; set; }
         bool KnownOmniVariant { get; set; }

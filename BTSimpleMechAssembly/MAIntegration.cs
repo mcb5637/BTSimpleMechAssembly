@@ -16,22 +16,22 @@ namespace BTSimpleMechAssembly
         {
             if (chassis.IsVehicle())
             {
-                __result = chassis.GetVariant();
+                __result = chassis.GetVariant(true);
                 return;
             }
             if (idType == 0) // assembly variant
             {
                 if (Assembly.Settings.MAIntegration_OverrideOnly)
-                    __result = chassis.GetVariantOverride() ?? __result;
+                    __result = chassis.GetVariantOverride(true) ?? __result;
                 else
-                    __result = chassis.GetVariant();
+                    __result = chassis.GetVariant(true);
             }
         }
         private static void GetPrefabIdInternalV_Postfix(VehicleChassisDef chassis, int idType, ref string __result)
         {
             if (idType == 0) // assembly variant
             {
-                __result = chassis.GetVariant();
+                __result = chassis.GetVariant(true);
             }
         }
 

@@ -108,8 +108,8 @@ namespace BTSimpleMechAssembly
             // a excluded had been checked before
             if (b.IsCrossAssemblyExcluded())
                 return false; // b excluded
-            string va = a.Chassis.GetVariant();
-            string vb = b.Chassis.GetVariant();
+            string va = a.Chassis.GetVariant(false);
+            string vb = b.Chassis.GetVariant(false);
             if (IsCrossAssemblyOverrideEnabled(a, b, va, vb))
                 return true; // override enabled
             if (string.IsNullOrEmpty(va) || !va.Equals(vb))
@@ -119,7 +119,7 @@ namespace BTSimpleMechAssembly
                 a.Chassis.RefreshMovementCaps();
                 if (a.Chassis.MovementCapDef == null)
                 {
-                    Log.LogError(string.Format("{0} {1} (a) has no MovementCapDef, aborting speed comparison", a.Chassis.Description.UIName, a.Chassis.VariantName));
+                    Log.LogError($"{a.Chassis.Description.UIName} {a.Chassis.VariantName} (a) has no MovementCapDef, aborting speed comparison");
                     return false;
                 }
             }
@@ -128,7 +128,7 @@ namespace BTSimpleMechAssembly
                 b.Chassis.RefreshMovementCaps();
                 if (b.Chassis.MovementCapDef == null)
                 {
-                    Log.LogError(string.Format("{0} {1} (b) has no MovementCapDef, aborting speed comparison", b.Chassis.Description.UIName, b.Chassis.VariantName));
+                    Log.LogError($"{b.Chassis.Description.UIName} {b.Chassis.VariantName} (b) has no MovementCapDef, aborting speed comparison");
                     return false;
                 }
             }
@@ -157,8 +157,8 @@ namespace BTSimpleMechAssembly
                 return false;
             if (b.IsCrossAssemblyExcluded())
                 return false; // b excluded
-            string va = a.Chassis.GetVariant();
-            string vb = b.Chassis.GetVariant();
+            string va = a.Chassis.GetVariant(false);
+            string vb = b.Chassis.GetVariant(false);
             if (IsCrossAssemblyOverrideEnabled(a, b, va, vb))
                 return true; // override enabled
             if (string.IsNullOrEmpty(va) || !va.Equals(vb))
@@ -170,8 +170,8 @@ namespace BTSimpleMechAssembly
             // aexcluded already checked, as well as a+b vehicle
             if (b.IsCrossAssemblyExcluded())
                 return false; // b excluded
-            string va = a.Chassis.GetVariant();
-            string vb = b.Chassis.GetVariant();
+            string va = a.Chassis.GetVariant(false);
+            string vb = b.Chassis.GetVariant(false);
             return va != null && vb != null && va.Equals(vb);
         }
 
