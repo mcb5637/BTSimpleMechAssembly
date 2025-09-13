@@ -155,17 +155,17 @@ namespace BTSimpleMechAssembly
                 MechDef toSalvage = GetSalvageRedirect(s, u.mech);
                 if (parts < minparts)
                 {
-                    log.Log("below min parts, getting min parts instead");
+                    log.Log($"below min parts, getting min parts instead {parts}<{minparts}/{maxparts}");
                     AddMechPartSalvage(__instance, toSalvage, s, minparts, ___finalPotentialSalvage);
                 }
                 else if (fract > rand)
                 {
-                    log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1 ({fract}>{rand})");
+                    log.Log($"rolled low on parts, getting {Math.Floor(parts)} + 1/{maxparts} ({fract}>{rand})");
                     AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Ceiling(parts), ___finalPotentialSalvage);
                 }
                 else
                 {
-                    log.Log($"rolled high on parts, getting {Math.Floor(parts)} ({fract}<={rand})");
+                    log.Log($"rolled high on parts, getting {Math.Floor(parts)}/{maxparts} ({fract}<={rand})");
                     AddMechPartSalvage(__instance, toSalvage, s, (int)Math.Floor(parts), ___finalPotentialSalvage);
                 }
             }

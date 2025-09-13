@@ -1,6 +1,8 @@
 # BTSimpleMechAssembly
 Mod for BattleTech
 
+Download the latest release here: https://github.com/mcb5637/BTSimpleMechAssembly/releases/latest/download/BTSimpleMechAssembly.zip
+
 Changes how mechs are assembled.
 Allows Crossvariant Assembly (requires machine shop argo upgrade by default) to combine parts of different mech variants to one mech.  
 You are no longer forced to assemble mechs on gaining parts. Instead you get asked if you want to assemble a mech (and which if you have CrossvariantAssembly) and if it should go into storage or to you active mechs or even get directly sold.  
